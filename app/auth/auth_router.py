@@ -1,16 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query
-from fastapi import status
-from pydantic import HttpUrl
+from typing import Any
 
-from app.auth.auth_request import KakaoRefreshTokenAuthRequest
-from app.auth.auth_response import KakaoCallbackResponse, RefreshTokenResponse, KakaoAuthUrlResponse
+import jwt
+from fastapi import APIRouter, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from app.auth.auth_service import AuthService
 
 from app.user.user_service import UserService
 from app.utils.jwt_handler import JwtHandler
 
 router = APIRouter(prefix="/kakao", tags=["Kakao OAuth"])
-
 
 @router.get("/authorize", response_model=KakaoAuthUrlResponse)
 async def get_kakao_code() -> KakaoAuthUrlResponse:
@@ -20,8 +18,9 @@ async def get_kakao_code() -> KakaoAuthUrlResponse:
     return KakaoAuthUrlResponse(auth_url=auth_url)
 
 
-@router.get("/callback", response_model=KakaoCallbackResponse)
-async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인증 코드")) -> KakaoCallbackResponse:
+
+@router.get("/callback")
+async def kakao_callback(code: str):
     """카카오 OAuth 로그인 후 access_token과 refresh_token 발급"""
     token_info = await AuthService.get_token(code)
     if "access_token" not in token_info:
@@ -41,14 +40,11 @@ async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인
         {"kakao_id": user_data.kakao_id, "nickname": user_data.nickname}
     )  # 길게 설정 가능
 
-    return KakaoCallbackResponse(
-        access_token=access_jwt,
-        refresh_token=refresh_jwt,
-        id=int(user_data.kakao_id),
-        nickname=user_data.nickname,
-        profile_image=HttpUrl(user_data.profile_image),
-        thumbnail_image=HttpUrl(user_data.thumbnail_image),
-    )
+    return {
+        "access_token": access_jwt,
+        "refresh_token": refresh_jwt,
+        "token_type": "bearer"
+    }
 
 
 @router.post("/refresh_token", response_model=RefreshTokenResponse)
