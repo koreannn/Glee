@@ -1,64 +1,67 @@
-from typing import Any
+from fastapi import APIRouter, HTTPException, Query
+from fastapi import status
+from pydantic import HttpUrl
 
-import jwt
-from fastapi import APIRouter, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from app.auth.auth_request import KakaoRefreshTokenAuthRequest
+from app.auth.auth_response import KakaoCallbackResponse, RefreshTokenResponse, KakaoAuthUrlResponse
 from app.auth.auth_service import AuthService
-from fastapi.templating import Jinja2Templates
 
+from app.user.user_service import UserService
+from app.utils.jwt_handler import JwtHandler
 
 router = APIRouter(prefix="/kakao", tags=["Kakao OAuth"])
 
 
-
-@router.get("/authorize")
-async def get_kakao_code():
+@router.get("/authorize", response_model=KakaoAuthUrlResponse)
+async def get_kakao_code() -> KakaoAuthUrlResponse:
     """카카오 로그인 URL 제공"""
     scope = "profile_nickname, profile_image"
-    return {"auth_url": AuthService.getcode_auth_url(scope)}
+    auth_url = AuthService.getcode_auth_url(scope)
+    return KakaoAuthUrlResponse(auth_url=auth_url)
 
 
-
-@router.get("/callback")
-async def kakao_callback(code: str):
+@router.get("/callback", response_model=KakaoCallbackResponse)
+async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인증 코드")) -> KakaoCallbackResponse:
     """카카오 OAuth 로그인 후 access_token과 refresh_token 발급"""
     token_info = await AuthService.get_token(code)
     if "access_token" not in token_info:
-        raise HTTPException(status_code=400, detail="OAuth authentication failed")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OAuth authentication failed")
 
     access_token = token_info["access_token"]
-    user_info = await AuthService.get_user_info(access_token)
+    user_data = await AuthService.get_user_info(access_token)
 
-    if not user_info:
-        raise HTTPException(status_code=400, detail="Failed to fetch user info")
+    if not user_data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to fetch user info")
 
-    kakao_id = user_info["id"]
-    nickname = user_info["kakao_account"]["profile"]["nickname"]
+    await UserService.create_or_update_user(user_data)
 
     # 새로운 access_token 및 refresh_token 발급
-    access_jwt = AuthService.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})
-    refresh_jwt = AuthService.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})  # 길게 설정 가능
+    access_jwt = JwtHandler.create_jwt_token({"kakao_id": user_data.kakao_id, "nickname": user_data.nickname})
+    refresh_jwt = JwtHandler.create_jwt_token(
+        {"kakao_id": user_data.kakao_id, "nickname": user_data.nickname}
+    )  # 길게 설정 가능
 
-    return {
-        "access_token": access_jwt,
-        "refresh_token": refresh_jwt,
-        "token_type": "bearer"
-    }
+    return KakaoCallbackResponse(
+        access_token=access_jwt,
+        refresh_token=refresh_jwt,
+        id=int(user_data.kakao_id),
+        nickname=user_data.nickname,
+        profile_image=HttpUrl(user_data.profile_image),
+        thumbnail_image=HttpUrl(user_data.thumbnail_image),
+    )
 
 
-@router.post("/refresh_token")
-async def refresh_token(refresh_token: str = Form(...)):
+@router.post("/refresh_token", response_model=RefreshTokenResponse)
+async def refresh_token(request: KakaoRefreshTokenAuthRequest) -> RefreshTokenResponse:
     """리프레시 토큰을 사용해 새로운 액세스 토큰을 발급"""
     try:
-        payload = jwt.decode(refresh_token, AuthService.JWT_SECRET, algorithms=[AuthService.JWT_ALGORITHM])
+        payload = JwtHandler.verify_refresh_token(request.refresh_token)  # ✅ 서비스 계층에서 검증
         kakao_id = payload["kakao_id"]
         nickname = payload["nickname"]
 
         # 새로운 access_token 발급
-        new_access_token = AuthService.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})
+        new_access_token = JwtHandler.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})
 
-        return {"access_token": new_access_token, "token_type": "bearer"}
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Refresh token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+        return RefreshTokenResponse(access_token=new_access_token)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))  # ❌ 예외 처리
