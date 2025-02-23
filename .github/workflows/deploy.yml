@@ -58,7 +58,7 @@ jobs:
             docker rm dap-dap-back || true
 
             # 새로운 컨테이너 실행 (필요한 포트 매핑 및 컨테이너 이름 설정)
-            docker run -d --name dap-dap-back -p 8080:80 ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
+            docker run -d --name dap-dap-back -p 8000:80 ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
 
             # 사용하지 않는 이미지 정리
             docker image prune -f
