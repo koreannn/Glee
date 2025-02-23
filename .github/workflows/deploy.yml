@@ -19,7 +19,7 @@ jobs:
 
       # ncloud 컨테이너 레지스트리 로그인 (Secrets에 설정된 값을 사용)
       - name: Login to Ncloud Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ secrets.NCLOUD_REGISTRY_URL }}
           username: ${{ secrets.NCP_ACCESS_KEY }}
