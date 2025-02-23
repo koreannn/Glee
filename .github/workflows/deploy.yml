@@ -45,7 +45,11 @@ jobs:
           password: ${{ secrets.DEPLOYMENT_PASSWORD }}
           port: ${{ secrets.DEPLOYMENT_PORT }}
           script: |
-            # 새로운 이미지 Pull (태그명은 실제 사용한 태그로 변경)
+            
+            # 도커 로그인
+            docker login ${{ secrets.CONTAINER_REGISTRY_URL }} --username ${{ secrets.NCP_ACCESS_KEY }} --password ${{ secrets.NCP_SECRET_KEY }}
+            
+            # 새로운 이미지 Pull (태그명은 실제 사용한 태그로 변경) 
             docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
 
             # 기존 컨테이너 중 해당 애플리케이션만 종료하도록 container 이름이나 ID 지정 (예시로 'dap-dap-back' 사용)
