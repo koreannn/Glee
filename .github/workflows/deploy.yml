@@ -31,6 +31,9 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
+          cache-from: type=registry,ref=${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
+          cache-to: type=registry,ref=${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest,mode=max
+
 
   pull_deploy:
     name: Connect server via SSH and update container
