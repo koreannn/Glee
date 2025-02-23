@@ -13,8 +13,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock* /app/
 
 # Poetry 설정: 가상환경을 만들지 않고 전역에 설치
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-dev --no-interaction --no-ansi
+RUN poetry install --no-root
 
 # 애플리케이션 코드 복사
 COPY . /app
