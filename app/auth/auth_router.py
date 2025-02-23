@@ -1,80 +1,64 @@
 from typing import Any
 
+import jwt
 from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from app.auth.auth_service import AuthService
 from fastapi.templating import Jinja2Templates
 
-from app.auth.schemas import KakaoAuthUrl
 
 router = APIRouter(prefix="/kakao", tags=["Kakao OAuth"])
 
-# Jinja2 템플릿 엔진을 설정
-templates = Jinja2Templates(directory="templates")
 
 
-# 카카오 로그인을 시작하기 위한 엔드포인트
-@router.get("/authorize", response_model=KakaoAuthUrl)
-def get_kakao_code(request: Request) -> RedirectResponse:
-    scope = "profile_nickname, profile_image"  # 요청할 권한 범위
-    kakao_auth_url = AuthService.getcode_auth_url(scope)
-    return RedirectResponse(kakao_auth_url)
+@router.get("/authorize")
+async def get_kakao_code():
+    """카카오 로그인 URL 제공"""
+    scope = "profile_nickname, profile_image"
+    return {"auth_url": AuthService.getcode_auth_url(scope)}
 
 
-# 카카오 로그인 후 카카오에서 리디렉션될 엔드포인트
-# 카카오에서 제공한 인증 코드를 사용하여 액세스 토큰을 요청
+
 @router.get("/callback")
-async def kakao_callback(request: Request, code: str) -> RedirectResponse:
+async def kakao_callback(code: str):
+    """카카오 OAuth 로그인 후 access_token과 refresh_token 발급"""
     token_info = await AuthService.get_token(code)
-    if "access_token" in token_info:
-        request.session["access_token"] = token_info["access_token"]
-        print("로그인 성공")
-        return RedirectResponse(url="/kakao/user_info", status_code=302)
-    else:
-        return RedirectResponse(url="/?error=Failed to authenticate", status_code=302)
+    if "access_token" not in token_info:
+        raise HTTPException(status_code=400, detail="OAuth authentication failed")
+
+    access_token = token_info["access_token"]
+    user_info = await AuthService.get_user_info(access_token)
+
+    if not user_info:
+        raise HTTPException(status_code=400, detail="Failed to fetch user info")
+
+    kakao_id = user_info["id"]
+    nickname = user_info["kakao_account"]["profile"]["nickname"]
+
+    # 새로운 access_token 및 refresh_token 발급
+    access_jwt = AuthService.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})
+    refresh_jwt = AuthService.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})  # 길게 설정 가능
+
+    return {
+        "access_token": access_jwt,
+        "refresh_token": refresh_jwt,
+        "token_type": "bearer"
+    }
 
 
-# 홈페이지 및 로그인/로그아웃 버튼을 표시
-@router.get("/", response_class=HTMLResponse)
-async def read_root(request: Request) -> HTMLResponse:
-    logged_in = False
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "client_id": AuthService.client_id,
-            "redirect_uri": AuthService.redirect_uri,
-            "logged_in": logged_in,
-        },
-    )
-
-
-# 로그아웃 처리를 위한 엔드포인트
-# 세션에서 액세스 토큰을 제거하고 홈페이지로 리다이렉트
-@router.get("/logout")
-async def logout(request: Request) -> RedirectResponse:
-    client_id = AuthService.client_id
-    logout_redirect_uri = AuthService.logout_redirect_uri
-    await AuthService.logout(client_id, logout_redirect_uri)
-    request.session.pop("access_token", None)
-    return RedirectResponse(url="/")
-
-
-# 사용자 정보를 표시하기 위한 엔드포인트
-# 세션에 저장된 액세스 토큰을 사용하여 카카오 API에서 사용자 정보를 가져옴
-@router.get("/user_info", response_class=HTMLResponse)
-async def user_info(request: Request) -> HTMLResponse:
-    access_token = request.session.get("access_token")
-    if access_token:
-        user_info = await AuthService.get_user_info(access_token)
-        return templates.TemplateResponse("user_info.html", {"request": request, "user_info": user_info})
-    else:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-
-# 액세스 토큰을 새로고침하기 위한 엔드포인트
 @router.post("/refresh_token")
-async def refresh_token(refresh_token: str = Form(...)) -> Any:
-    client_id = AuthService.client_id
-    new_token_info = await AuthService.refreshAccessToken(client_id, refresh_token)
-    return new_token_info
+async def refresh_token(refresh_token: str = Form(...)):
+    """리프레시 토큰을 사용해 새로운 액세스 토큰을 발급"""
+    try:
+        payload = jwt.decode(refresh_token, AuthService.JWT_SECRET, algorithms=[AuthService.JWT_ALGORITHM])
+        kakao_id = payload["kakao_id"]
+        nickname = payload["nickname"]
+
+        # 새로운 access_token 발급
+        new_access_token = AuthService.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})
+
+        return {"access_token": new_access_token, "token_type": "bearer"}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
