@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth.auth_router import router as auth_router
 
@@ -14,14 +15,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
+# SessionMiddleware 추가하기
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="your-secret-key",  # 반드시 변경할 것!
+)
 
 
 @app.get("/")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
-
 
 
 if __name__ == "__main__":
