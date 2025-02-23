@@ -12,7 +12,7 @@ class AuthService:
     rest_api_key = settings.kakao_rest_api_key
     logout_redirect_uri = settings.kakao_logout_redirect_uri
 
-    JWT_SECRET = "your_secret_key"  # JWT 서명 키 (환경 변수로 관리 추천)
+    JWT_SECRET = settings.secret_key
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRATION_MINUTES = 60  # JWT 토큰 만료 시간 (1시간)
 
