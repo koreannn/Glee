@@ -1,34 +1,27 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
-from app.db.database import SessionLocal, Base, engine
-
-Base.metadata.create_all(bind=engine)
+from app.auth.auth_router import router as auth_router
 
 app = FastAPI()
+app.include_router(auth_router)
+
+# CORS 미들웨어 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-# DB 세션 의존성 주입 함수
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @app.get("/")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
 
-
-@app.get("/db-test")
-def read_root(db: Session = Depends(get_db)):
-    # DB 연결 테스트 예시
-    result = db.execute("SELECT 1").fetchone()
-    if not result:
-        raise HTTPException(status_code=500, detail="DB 연결 실패")
-    return {"message": "Hello, FastAPI!", "db_test": result[0]}
 
 
 if __name__ == "__main__":
