@@ -1,9 +1,13 @@
 import datetime
 from typing import Any
-
 import jwt
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2AuthorizationCodeBearer
+from jwt import PyJWTError
 
 from app.core.settings import settings
+from app.user.user_collection import UserCollection
+from app.user.user_document import UserDocument
 
 
 class JwtHandler:
@@ -11,6 +15,10 @@ class JwtHandler:
     JWT_SECRET = settings.secret_key
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRATION_MINUTES = 60  # JWT 토큰 만료 시간 (1시간)
+
+    oauth2_scheme = OAuth2AuthorizationCodeBearer(
+        authorizationUrl="https://kauth.kakao.com/oauth/authorize", tokenUrl="https://kauth.kakao.com/oauth/token"
+    )
 
     @classmethod
     def create_jwt_token(cls, data: dict[Any, Any]) -> str:
@@ -22,10 +30,14 @@ class JwtHandler:
         }
         return jwt.encode(payload, cls.JWT_SECRET, algorithm=cls.JWT_ALGORITHM)
 
-    # @classmethod
-    # def verify_jwt(cls, token: str) -> dict:
-    #     """JWT 검증"""
-    #     return jwt.decode(token, cls.JWT_SECRET, algorithms=[cls.JWT_ALGORITHM])
+    @classmethod
+    def verify_jwt(cls, token: str) -> Any:
+        """JWT 검증 (예외 발생 시 401 응답)"""
+        try:
+            payload = jwt.decode(token, cls.JWT_SECRET, algorithms=[cls.JWT_ALGORITHM])
+            return payload
+        except PyJWTError:
+            raise HTTPException(status_code=401, detail="verify_jwt Invalid or expired token")
 
     @classmethod
     def verify_refresh_token(cls, refresh_token: str) -> Any:
@@ -37,3 +49,18 @@ class JwtHandler:
             raise ValueError("Refresh token expired")  # ❌ 만료된 토큰
         except jwt.InvalidTokenError:
             raise ValueError("Invalid refresh token")  # ❌ 잘못된 토큰
+
+    @classmethod
+    async def get_current_user(cls, token: str = Depends(oauth2_scheme)) -> UserDocument:
+        """JWT 토큰을 이용하여 현재 로그인된 사용자 정보 반환"""
+        payload = cls.verify_jwt(token)
+        kakao_id = payload.get("id")
+
+        if not kakao_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        user_document = await UserCollection.get_by_kakao_id(kakao_id)
+
+        if not user_document:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return user_document

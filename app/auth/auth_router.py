@@ -1,13 +1,20 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi import status
 from pydantic import HttpUrl
 
 from app.auth.auth_request import KakaoRefreshTokenAuthRequest
-from app.auth.auth_response import KakaoCallbackResponse, RefreshTokenResponse, KakaoAuthUrlResponse
+from app.auth.auth_response import (
+    KakaoCallbackResponse,
+    RefreshTokenResponse,
+    KakaoAuthUrlResponse,
+    CurrentUserResponse,
+)
 from app.auth.auth_service import AuthService
+from app.user.user_document import UserDocument
 
 from app.user.user_service import UserService
 from app.utils.jwt_handler import JwtHandler
+from app.utils.jwt_payload import JwtPayload
 
 router = APIRouter(prefix="/kakao", tags=["Kakao OAuth"])
 
@@ -36,10 +43,10 @@ async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인
     await UserService.create_or_update_user(user_data)
 
     # 새로운 access_token 및 refresh_token 발급
-    access_jwt = JwtHandler.create_jwt_token({"kakao_id": user_data.kakao_id, "nickname": user_data.nickname})
-    refresh_jwt = JwtHandler.create_jwt_token(
-        {"kakao_id": user_data.kakao_id, "nickname": user_data.nickname}
-    )  # 길게 설정 가능
+    payload = JwtPayload(id=int(user_data.kakao_id), nickname=user_data.nickname)
+
+    access_jwt = JwtHandler.create_jwt_token(payload.model_dump())
+    refresh_jwt = JwtHandler.create_jwt_token(payload.model_dump())  # 길게 설정 가능
 
     return KakaoCallbackResponse(
         access_token=access_jwt,
@@ -56,12 +63,28 @@ async def refresh_token(request: KakaoRefreshTokenAuthRequest) -> RefreshTokenRe
     """리프레시 토큰을 사용해 새로운 액세스 토큰을 발급"""
     try:
         payload = JwtHandler.verify_refresh_token(request.refresh_token)  # ✅ 서비스 계층에서 검증
-        kakao_id = payload["kakao_id"]
+        kakao_id = payload["id"]
         nickname = payload["nickname"]
 
         # 새로운 access_token 발급
-        new_access_token = JwtHandler.create_jwt_token({"kakao_id": kakao_id, "nickname": nickname})
+        new_access_token = JwtHandler.create_jwt_token({"id": kakao_id, "nickname": nickname})
 
         return RefreshTokenResponse(access_token=new_access_token)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))  # ❌ 예외 처리
+
+
+@router.get("/me", response_model=CurrentUserResponse)
+async def get_current_user(user: UserDocument = Depends(JwtHandler.get_current_user)) -> CurrentUserResponse:
+    """JWT 토큰을 기반으로 현재 로그인한 유저 정보 반환"""
+    print("auth router get_current_user", user.id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return CurrentUserResponse(
+        id=user.kakao_id,
+        nickname=user.nickname,
+        profile_image=user.profile_image,
+        thumbnail_image=user.thumbnail_image,
+    )

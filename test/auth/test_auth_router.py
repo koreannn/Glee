@@ -87,7 +87,7 @@ async def test_kakao_callback_invalid_code() -> None:
 async def test_refresh_token() -> None:
     """리프레시 토큰을 통한 새로운 액세스 토큰 발급 테스트"""
     mock_refresh_token = "mock_refresh_token"
-    mock_payload = {"kakao_id": 12345678, "nickname": "Test User"}
+    mock_payload = {"id": 12345678, "nickname": "Test User"}
     mock_new_access_token = "mock_new_access_jwt"
 
     with (
@@ -105,7 +105,7 @@ async def test_refresh_token() -> None:
         assert response.status_code == 200
         assert response.json() == {"access_token": mock_new_access_token, "token_type": "bearer"}
         mock_verify_refresh_token.assert_called_once_with(mock_refresh_token)
-        mock_create_jwt.assert_called_once_with({"kakao_id": 12345678, "nickname": "Test User"})
+        mock_create_jwt.assert_called_once_with({"id": 12345678, "nickname": "Test User"})
 
 
 @pytest.mark.asyncio
