@@ -26,6 +26,8 @@ class AuthService:
             "redirect_uri": cls.redirect_uri,
             "scope": scope,
         }
+        print(f"{base_url}?{urlencode(params)}")
+
         return HttpUrl(f"{base_url}?{urlencode(params)}")
 
     @classmethod
