@@ -365,7 +365,7 @@ class ClovaApp(tk.Tk):
         self.tone_style = ""
         self.usage_style = ""
 
-        # Depth4에서 상황말투용도도 결과 수정하는 Text
+        # Depth4에서 상황말투용도(스타일)도 결과 수정하는 Text
         self.text_style_edit = None
 
         self.create_frames()
