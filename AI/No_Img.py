@@ -10,6 +10,7 @@ def load_config(file_path):
         config = yaml.safe_load(file)
     return config
 
+
 class CompletionExecutor:
     def __init__(self, host, api_key, api_key_primary_val, request_id):
         self._host = host
@@ -48,6 +49,7 @@ class CompletionExecutor:
                 except json.JSONDecodeError:
                     continue
         return None
+
 
 def run_no_img():
     config = load_config("./config_No_Img.yaml")
@@ -109,6 +111,6 @@ def run_no_img():
         host=HOST, api_key=API_KEY, api_key_primary_val=API_KEY_PRIMARY_VAL, request_id=REQUEST_ID
     )
     result = executor.execute(request_data)
-    
+
     logger.info(f"생성된 답변:\n{result}")
     return result
