@@ -10,15 +10,6 @@ def load_config(file_path):
         config = yaml.safe_load(file)
     return config
 
-
-config = load_config("./config_No_Img.yaml")
-
-HOST = config["API"]["HOST"]
-API_KEY = config["API"]["API_KEY"]
-API_KEY_PRIMARY_VAL = config["API"]["API_KEY_PRIMARY_VAL"]
-REQUEST_ID = config["API"]["REQUEST_ID"]
-
-
 class CompletionExecutor:
     def __init__(self, host, api_key, api_key_primary_val, request_id):
         self._host = host
@@ -58,8 +49,14 @@ class CompletionExecutor:
                     continue
         return None
 
+def run_no_img():
+    config = load_config("./config_No_Img.yaml")
 
-if __name__ == "__main__":
+    HOST = config["API"]["HOST"]
+    API_KEY = config["API"]["API_KEY"]
+    API_KEY_PRIMARY_VAL = config["API"]["API_KEY_PRIMARY_VAL"]
+    REQUEST_ID = config["API"]["REQUEST_ID"]
+
     completion_executor = CompletionExecutor(
         host=f"{HOST}", api_key=f"{API_KEY}", api_key_primary_val=f"{API_KEY_PRIMARY_VAL}", request_id=f"{REQUEST_ID}"
     )
@@ -86,29 +83,32 @@ if __name__ == "__main__":
         "교수님께 보내는 메일. 수강신청을 놓쳐서 추가 신쳥을 교수님께 요구드려야하는 상황",
     ]
 
-preset_text = [
-    {
-        "role": config["PROMPT"]["preset_text"]["system"]["role"],
-        "content": config["PROMPT"]["preset_text"]["system"]["content"],
-    },
-    {
-        "role": config["PROMPT"]["preset_text"]["user"]["role"],
-        "content": f"상황: {step_1[0]}\n말투: {step_2[1]}\n사용되는곳: {step_3[2]}\n사용자가 추가적으로 원하는 요구사항:{step_4_ex[1]}",  # 사용자 입력
-    },
-]
+    preset_text = [
+        {
+            "role": config["PROMPT"]["preset_text"]["system"]["role"],
+            "content": config["PROMPT"]["preset_text"]["system"]["content"],
+        },
+        {
+            "role": config["PROMPT"]["preset_text"]["user"]["role"],
+            "content": f"상황: {step_1[0]}\n말투: {step_2[1]}\n사용되는곳: {step_3[2]}\n사용자가 추가적으로 원하는 요구사항:{step_4_ex[1]}",  # 사용자 입력
+        },
+    ]
 
-request_data = {
-    "messages": preset_text,
-    "topP": config["PARAMS"]["request_params"]["topP"],
-    "topK": config["PARAMS"]["request_params"]["topK"],
-    "maxTokens": config["PARAMS"]["request_params"]["maxTokens"],
-    "temperature": config["PARAMS"]["request_params"]["temperature"],
-    "repeatPenalty": config["PARAMS"]["request_params"]["repeatPenalty"],
-    "stopBefore": config["PARAMS"]["request_params"]["stopBefore"],
-    "includeAiFilters": config["PARAMS"]["request_params"]["includeAiFilters"],
-    "seed": config["PARAMS"]["request_params"]["seed"],
-}
-
-print(preset_text)
-print(completion_executor.execute(request_data))
-# completion_executor.execute(request_data)
+    request_data = {
+        "messages": preset_text,
+        "topP": config["PARAMS"]["request_params"]["topP"],
+        "topK": config["PARAMS"]["request_params"]["topK"],
+        "maxTokens": config["PARAMS"]["request_params"]["maxTokens"],
+        "temperature": config["PARAMS"]["request_params"]["temperature"],
+        "repeatPenalty": config["PARAMS"]["request_params"]["repeatPenalty"],
+        "stopBefore": config["PARAMS"]["request_params"]["stopBefore"],
+        "includeAiFilters": config["PARAMS"]["request_params"]["includeAiFilters"],
+        "seed": config["PARAMS"]["request_params"]["seed"],
+    }
+    executor = CompletionExecutor(
+        host=HOST, api_key=API_KEY, api_key_primary_val=API_KEY_PRIMARY_VAL, request_id=REQUEST_ID
+    )
+    result = executor.execute(request_data)
+    
+    logger.info(f"생성된 답변:\n{result}")
+    return result
