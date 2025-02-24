@@ -3,11 +3,14 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth.auth_router import router as auth_router
+from app.analyze.analyze_router import router as analyze_router
 from app.core.settings import settings
 
 app = FastAPI()
 
+
 app.include_router(auth_router)
+app.include_router(analyze_router)
 
 # CORS 미들웨어 추가
 app.add_middleware(
@@ -32,4 +35,4 @@ async def health() -> dict[str, str]:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

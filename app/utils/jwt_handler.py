@@ -2,23 +2,18 @@ import datetime
 from typing import Any
 import jwt
 from fastapi import HTTPException, Depends
-from fastapi.security import OAuth2AuthorizationCodeBearer
-from jwt import PyJWTError
 
 from app.core.settings import settings
 from app.user.user_collection import UserCollection
 from app.user.user_document import UserDocument
+from app.utils.api_header_validator import verify_jwt
 
 
 class JwtHandler:
-
     JWT_SECRET = settings.secret_key
     JWT_ALGORITHM = "HS256"
-    JWT_EXPIRATION_MINUTES = 60  # JWT 토큰 만료 시간 (1시간)
 
-    oauth2_scheme = OAuth2AuthorizationCodeBearer(
-        authorizationUrl="https://kauth.kakao.com/oauth/authorize", tokenUrl="https://kauth.kakao.com/oauth/token"
-    )
+    JWT_EXPIRATION_MINUTES = 60  # JWT 토큰 만료 시간 (1시간)
 
     @classmethod
     def create_jwt_token(cls, data: dict[Any, Any]) -> str:
@@ -29,15 +24,6 @@ class JwtHandler:
             "iat": datetime.datetime.utcnow(),
         }
         return jwt.encode(payload, cls.JWT_SECRET, algorithm=cls.JWT_ALGORITHM)
-
-    @classmethod
-    def verify_jwt(cls, token: str) -> Any:
-        """JWT 검증 (예외 발생 시 401 응답)"""
-        try:
-            payload = jwt.decode(token, cls.JWT_SECRET, algorithms=[cls.JWT_ALGORITHM])
-            return payload
-        except PyJWTError:
-            raise HTTPException(status_code=401, detail="verify_jwt Invalid or expired token")
 
     @classmethod
     def verify_refresh_token(cls, refresh_token: str) -> Any:
@@ -51,9 +37,8 @@ class JwtHandler:
             raise ValueError("Invalid refresh token")  # ❌ 잘못된 토큰
 
     @classmethod
-    async def get_current_user(cls, token: str = Depends(oauth2_scheme)) -> UserDocument:
+    async def get_current_user(cls, payload: dict[Any, Any] = Depends(verify_jwt)) -> UserDocument:
         """JWT 토큰을 이용하여 현재 로그인된 사용자 정보 반환"""
-        payload = cls.verify_jwt(token)
         kakao_id = payload.get("id")
 
         if not kakao_id:

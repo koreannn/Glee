@@ -77,8 +77,6 @@ async def refresh_token(request: KakaoRefreshTokenAuthRequest) -> RefreshTokenRe
 @router.get("/me", response_model=CurrentUserResponse)
 async def get_current_user(user: UserDocument = Depends(JwtHandler.get_current_user)) -> CurrentUserResponse:
     """JWT 토큰을 기반으로 현재 로그인한 유저 정보 반환"""
-    print("auth router get_current_user", user.id)
-
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
