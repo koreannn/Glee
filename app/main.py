@@ -43,7 +43,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """모든 요청의 정보를 로깅하는 미들웨어"""
         body = await request.body()
-        body_str = body.decode("utf-8") if body else None
+        try:
+            body_str = body.decode("utf-8") if body else None
+        except UnicodeDecodeError:
+            body_str = "<binary data>"
 
         logger.info(f"""
         📌 요청 정보:

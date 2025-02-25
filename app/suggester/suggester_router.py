@@ -1,6 +1,8 @@
+import logging
 from typing import List
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
+from fastapi import Request
 
 from app.suggester.suggester_request import GenerateSuggestionRequest
 from app.suggester.suggester_response import AnalyzeImagesConversationResponse, GenerateSuggestionResponse
@@ -9,7 +11,7 @@ from app.user.user_document import UserDocument
 from app.utils.jwt_handler import JwtHandler
 
 router = APIRouter(prefix="/suggester", tags=["Analyze"])
-
+logger = logging    .getLogger(__name__)
 
 @router.post(
     "/analyze/image",
@@ -17,10 +19,19 @@ router = APIRouter(prefix="/suggester", tags=["Analyze"])
     response_model=AnalyzeImagesConversationResponse,
 )
 async def analyze_images(
+    request: Request,
     purpose: PurposeType = Form(...),
     image_files: List[UploadFile] = File(...),
     user: UserDocument = Depends(JwtHandler.get_current_user),
 ) -> AnalyzeImagesConversationResponse:
+    logger.info(f"""
+        📌 요청 정보:
+        - URL: {request.url}
+        - METHOD: {request.method}
+        - HEADERS: {dict(request.headers)}
+        - FORM DATA (purpose): {purpose}
+        - FILES: {[file.filename for file in image_files]}
+        """)
 
     if len(image_files) > 4:
         raise HTTPException(status_code=400, detail="You can only upload up to 4 images.")
