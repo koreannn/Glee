@@ -7,6 +7,7 @@ def get_user_choice():
 
 
 def main():
+
     choice = get_user_choice()
 
     if choice == "1":
@@ -23,6 +24,8 @@ def main():
         from No_Img import run_no_img
 
         result = run_no_img()
+
+    # 내용 요약하기 (1. 한줄정도의 매우 짧은 제목 / 2. 두세줄정도의 좀 더 구체적인 요약 내용 (날짜 포함시키기))
 
 
 if __name__ == "__main__":

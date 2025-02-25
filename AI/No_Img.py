@@ -52,7 +52,7 @@ class CompletionExecutor:
 
 
 def run_no_img():
-    config = load_config("./config_No_Img.yaml")
+    config = load_config("./config/config_No_Img.yaml")
 
     HOST = config["API"]["HOST"]
     API_KEY = config["API"]["API_KEY"]

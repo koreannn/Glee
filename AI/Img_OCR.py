@@ -14,7 +14,7 @@ def load_config(file_path):
 
 
 def run_orc():
-    config = load_config("./config_OCR.yaml")
+    config = load_config("./config/config_OCR.yaml")
 
     api_url = config["API"]["APIGW_Invoke_URL"]
     secret_key = config["API"]["SECRET_KEY"]
