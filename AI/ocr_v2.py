@@ -687,6 +687,7 @@ class ClovaApp(tk.Tk):
         self.update_title_suggestions_display()
         self.update_reply_suggestions_display()
 
+
 if __name__ == "__main__":
     app = ClovaApp()
     app.mainloop()
