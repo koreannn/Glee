@@ -49,7 +49,7 @@ async def analyze_images(
 
 
 @router.post(
-    "/generate/",
+    "/generate",
     summary="상황, 말투, 용도, 상세 정보를 받아 AI 글을 생성하여 반환",
     response_model=GenerateSuggestionResponse,
 )
@@ -59,8 +59,9 @@ async def generate_suggestion(
 ) -> GenerateSuggestionResponse:
 
     # TODO AI API 호출해서 올리는거
-    suggestion = "suggestion"
-    return GenerateSuggestionResponse(suggestion=suggestion)
+    suggestions = ["suggestion", "suggestion", "suggestion"]
+
+    return GenerateSuggestionResponse(suggestions=suggestions)
 
 
 @router.post("/", response_model=SuggestionResponse, summary="유저가 생성한 글제안 - 저장")

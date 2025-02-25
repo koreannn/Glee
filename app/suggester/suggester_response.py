@@ -12,7 +12,7 @@ class AnalyzeImagesConversationResponse(BaseModel):
 
 
 class GenerateSuggestionResponse(BaseModel):
-    suggestion: str
+    suggestions: list[str]
 
 
 class SuggestionResponse(BaseModel):
