@@ -9,7 +9,5 @@ class AnalyzeImagesConversationResponse(BaseModel):
     purpose: PurposeType
 
 
-
 class GenerateSuggestionResponse(BaseModel):
     suggestion: str
-

@@ -15,6 +15,7 @@ repos:
         language: system
         types_or:
           - python
+        exclude: '(^|/)AI/'
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.2

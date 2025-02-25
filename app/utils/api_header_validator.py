@@ -11,6 +11,7 @@ from app.core.settings import settings
 httpBearer = HTTPBearer()
 JWT_ALGORITHM = "HS256"
 
+
 def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(httpBearer)) -> Any:
     if not credentials or not credentials.credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
