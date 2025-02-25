@@ -65,7 +65,7 @@ async def generate_suggestion(
 
 @router.post("/", response_model=SuggestionResponse, summary="유저가 생성한 글제안 - 저장")
 async def save_suggestion(
-    request: SaveSuggestionRequest = Depends(SaveSuggestionRequest),
+    request: SaveSuggestionRequest,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionResponse:
     new_suggestion = await SuggesterService.create_suggestion(user.id, request.tags, request.suggestion)

@@ -23,8 +23,9 @@ class Settings(BaseSettings):
     CLOVA_REQ_ID_NEW_REPLY: str
     CLOVA_REQ_ID_STYLE: str
 
-    test_mongo_uri: str
-    test_jwt_token: str
+    # ✅ dev 환경에서만 포함
+    test_mongo_uri: str | None = None
+    test_jwt_token: str | None = None
 
 
 # 설정을 불러옵니다.

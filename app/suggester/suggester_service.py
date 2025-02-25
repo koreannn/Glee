@@ -46,6 +46,7 @@ class SuggesterService:
         data = await SuggesterCollection.get_by_id(suggestion_id)
         if data is None or not data:
             raise HTTPException(status_code=404, detail="Suggestion not found")
+
         return SuggesterDocument(**data)
 
     @staticmethod
