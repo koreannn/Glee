@@ -3,7 +3,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth.auth_router import router as auth_router
-from app.analyze.analyze_router import router as analyze_router
+from app.suggester.suggester_router import router as analyze_router
 from app.core.settings import settings
 
 app = FastAPI()

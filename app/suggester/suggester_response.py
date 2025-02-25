@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.analyze.enums import PurposeType
+from app.suggester.enums import PurposeType
 
 
 class AnalyzeImagesConversationResponse(BaseModel):
@@ -7,3 +7,7 @@ class AnalyzeImagesConversationResponse(BaseModel):
     tone: str
     usage: str
     purpose: PurposeType
+
+
+class GenerateSuggestionResponse(BaseModel):
+    suggestion: str
