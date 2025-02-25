@@ -1,0 +1,15 @@
+SYSTEM_PROMPT: 
+  '''
+  사용자가 입력한 내용을 보고 상황, 말투, 용도를 출력해줘.
+  출력 형식은 "상황: ...", "말투: ...", "용도: ..."로 해줘.
+  '''
+
+HYPER_PARAM:
+  topP: 0.8
+  topK: 0
+  maxTokens: 256
+  temperature: 0.5
+  repeatPenalty: 5.0
+  stopBefore: []
+  includeAiFilters: True
+  seed: 0

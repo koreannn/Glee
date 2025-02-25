@@ -1,15 +1,16 @@
 import json
-
+from dotenv import load_dotenv
 from loguru import logger
 import requests
 import yaml
-
+import os
 
 def load_config(file_path):
     with open(file_path, "r") as file:
         config = yaml.safe_load(file)
     return config
 
+load_dotenv("../.env")
 
 class CompletionExecutor:
     def __init__(self, host, api_key, api_key_primary_val, request_id):
@@ -51,13 +52,13 @@ class CompletionExecutor:
         return None
 
 
-def run_no_img():
+def Run_No_Img():
     config = load_config("./config/config_No_Img.yaml")
 
-    HOST = config["API"]["HOST"]
-    API_KEY = config["API"]["API_KEY"]
-    API_KEY_PRIMARY_VAL = config["API"]["API_KEY_PRIMARY_VAL"]
-    REQUEST_ID = config["API"]["REQUEST_ID"]
+    HOST = os.getenv("HOST")
+    API_KEY = os.getenv("API_KEY")
+    API_KEY_PRIMARY_VAL = os.getenv("API_KEY_PRIMARY_VAL")
+    REQUEST_ID = os.getenv("REQUEST_ID")
 
     completion_executor = CompletionExecutor(
         host=f"{HOST}", api_key=f"{API_KEY}", api_key_primary_val=f"{API_KEY_PRIMARY_VAL}", request_id=f"{REQUEST_ID}"

@@ -5,28 +5,29 @@ def get_user_choice():
     choice = input("선택 (1 또는 2): ")
     return choice.strip()
 
+from loguru import logger
+from No_Img import Run_No_Img
+from ocr_v2 import CLOVA_OCR, CLOVA_AI_Reply_Summary, CLOVA_AI_Title_Suggestions
 
-def main():
+choice = get_user_choice()
 
-    choice = get_user_choice()
+if choice == "1": # OCR
+    OCR_Text = CLOVA_OCR(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+    logger.info("OCR 결과를 기반으로 답변 생성 로직 진행...")
+    print("'답장' 1번 OR '이런 느낌으로 작성해주세요' 2번: ")
+    choice = input()
+    if choice == "1": # 답장 (상황만 요약) -> CLOVA_AI_Reply_Summary
+        situation_summary = CLOVA_AI_Reply_Summary(OCR_Text)
+        title = CLOVA_AI_Title_Suggestions(OCR_Text) # 제목 생성해보기
+        
+    # elif choice == "2": # 이런 느낌으로 작성해주세요: 상황, 말투, 용도 세 가지를 리턴해야
+        
 
-    if choice == "1":
-        # OCR 모듈 임포트 및 실행
-        from Img_OCR import run_ocr
+elif choice == "2": # 사진 없이
+    logger.info("No Image")
+    result = Run_No_Img()
 
-        extracted_text = run_ocr()
-        # 여기서 추가적으로 LLM 호출 등 후속 처리를 진행할 수 있음.
-        print("OCR 결과를 기반으로 답변 생성 로직 진행...")
-        # 예시: 답변 생성 함수 호출 (추후 구현)
-
-    elif choice == "2":
-        # 사진 없이 직접 텍스트 입력 모듈 임포트 및 실행
-        from No_Img import run_no_img
-
-        result = run_no_img()
-
-    # 내용 요약하기 (1. 한줄정도의 매우 짧은 제목 / 2. 두세줄정도의 좀 더 구체적인 요약 내용 (날짜 포함시키기))
+logger.info("내용 요약 중")
 
 
-if __name__ == "__main__":
-    main()
+
