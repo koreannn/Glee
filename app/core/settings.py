@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     CLOVA_REQ_ID_NEW_REPLY: str
     CLOVA_REQ_ID_STYLE: str
 
+    test_mongo_uri: str
+    test_jwt_token: str
+
 
 # 설정을 불러옵니다.
 settings = Settings()
