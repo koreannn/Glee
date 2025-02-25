@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
 
 from app.suggester.suggester_request import GenerateSuggestionRequest
@@ -16,7 +18,7 @@ router = APIRouter(prefix="/suggester", tags=["Analyze"])
 )
 async def analyze_images(
     purpose: PurposeType = Form(...),
-    image_files: list[UploadFile] = File(...),
+    image_files: List[UploadFile] = File(...),
     user: UserDocument = Depends(JwtHandler.get_current_user),
 ) -> AnalyzeImagesConversationResponse:
 
