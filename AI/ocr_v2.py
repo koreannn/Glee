@@ -11,7 +11,39 @@ import re
 
 load_dotenv()  # .env 파일 로드
 
+# OCR API 응답(JSON)에서 추출된 텍스트를 하나의 문자열로 합치기
+def extract_text_from_ocr_result(ocr_result):
 
+    text = ""
+    if isinstance(ocr_result, dict) and "images" in ocr_result:
+        for image in ocr_result["images"]:
+            if "fields" in image:
+                for field in image["fields"]:
+                    text += field.get("inferText", "") + "\n"
+
+    return text.strip()
+
+# -------------------------------------------------------------------
+# case1. OCR로 글씨 추출 후 상황 요약 AI 호출하고 결과 리턴
+def ocr_and_reply_summary(image_path):
+
+    ocr_result = clova_ocr(image_path)
+    extracted_text = extract_text_from_ocr_result(ocr_result)
+    summary = clova_ai_reply_summary(extracted_text)
+
+    return summary
+
+# -------------------------------------------------------------------
+# case2. OCR로 글씨 추출 후 상황·말투·용도 AI 호출 및 분석 결과 파싱하여 리턴
+def ocr_and_style_analysis(image_path):
+
+    ocr_result = clova_ocr(image_path)
+    extracted_text = extract_text_from_ocr_result(ocr_result)
+    style_result = clova_ai_style_analysis(extracted_text)
+    situation, tone, usage = parse_style_analysis(style_result)
+
+    return situation, tone, usage
+    
 # 중복되는 문장 제거..
 def deduplicate_sentences(text):
     text = text.strip()
