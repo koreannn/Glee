@@ -6,6 +6,7 @@ from app.auth.auth_router import router as auth_router
 from app.suggester.suggester_router import router as analyze_router
 from app.core.settings import settings
 
+
 app = FastAPI()
 
 
@@ -25,6 +26,35 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,  # 반드시 변경할 것!
 )
+
+
+# ✅ 미들웨어를 이용한 로깅 추가
+# class RequestLoggingMiddleware(BaseHTTPMiddleware):
+#     async def dispatch(self, request: Request, call_next):
+#         """모든 요청의 정보를 로깅하는 미들웨어"""
+#         body = await request.body()
+#         try:
+#             body_str = body.decode("utf-8") if body else None
+#         except UnicodeDecodeError:
+#             body_str = "<binary data>"
+#
+#         logger.info(
+#             f"""
+#         📌 요청 정보:
+#         - URL: {request.url}
+#         - METHOD: {request.method}
+#         - HEADERS: {dict(request.headers)}
+#         - QUERY PARAMS: {dict(request.query_params)}
+#         - BODY: {body_str}
+#         """
+#         )
+#
+#         response = await call_next(request)
+#         return response
+#
+#
+# # ✅ 미들웨어 등록
+# app.add_middleware(RequestLoggingMiddleware)
 
 
 @app.get("/")
