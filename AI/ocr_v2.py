@@ -11,6 +11,7 @@ import re
 
 load_dotenv()  # .env 파일 로드
 
+
 # OCR API 응답(JSON)에서 추출된 텍스트를 하나의 문자열로 합치기
 def extract_text_from_ocr_result(ocr_result):
 
@@ -23,6 +24,7 @@ def extract_text_from_ocr_result(ocr_result):
 
     return text.strip()
 
+
 # -------------------------------------------------------------------
 # case1. OCR로 글씨 추출 후 상황 요약 AI 호출하고 결과 리턴
 def ocr_and_reply_summary(image_path):
@@ -32,6 +34,7 @@ def ocr_and_reply_summary(image_path):
     summary = clova_ai_reply_summary(extracted_text)
 
     return summary
+
 
 # -------------------------------------------------------------------
 # case2. OCR로 글씨 추출 후 상황·말투·용도 AI 호출 및 분석 결과 파싱하여 리턴
@@ -43,24 +46,26 @@ def ocr_and_style_analysis(image_path):
     situation, tone, usage = parse_style_analysis(style_result)
 
     return situation, tone, usage
-    
+
+
 # 중복되는 문장 제거..
 def deduplicate_sentences(text):
     text = text.strip()
-    
+
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     dedup_lines = []
     for line in lines:
         if not dedup_lines or dedup_lines[-1] != line:
             dedup_lines.append(line)
     new_text = "\n".join(dedup_lines)
-    
+
     if len(new_text) > 0:
         half = len(new_text) // 2
         if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
             return new_text[:half].strip()
-    
+
     return new_text
+
 
 # -------------------------------------------------------------------
 # 1) CLOVA OCR 호출 함수
@@ -74,7 +79,7 @@ def clova_ocr(image_path):
         "images": [{"format": "jpg", "name": "demo"}],
         "requestId": str(uuid.uuid4()),
         "version": "V2",
-        "timestamp": int(round(time.time() * 1000))
+        "timestamp": int(round(time.time() * 1000)),
     }
     payload = {"message": json.dumps(request_json).encode("UTF-8")}
     files = [("file", open(image_path, "rb"))]
@@ -91,18 +96,18 @@ def clova_ai_reply_summary(prompt):
     # (2) .env에서 불러오기
     url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
-    request_id = os.getenv("CLOVA_REQ_ID_REPLY_SUMMARY")  
+    request_id = os.getenv("CLOVA_REQ_ID_REPLY_SUMMARY")
 
     headers = {
         "Authorization": f"Bearer {bearer_token}",
         "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
         "Content-Type": "application/json",
-        "Accept": "text/event-stream"
+        "Accept": "text/event-stream",
     }
     payload = {
         "messages": [
             {"role": "system", "content": "사용자가 입력한 내용을 보고 상황을 요약해줘."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "topP": 0.8,
         "topK": 0,
@@ -111,14 +116,14 @@ def clova_ai_reply_summary(prompt):
         "repeatPenalty": 5.0,
         "stopBefore": [],
         "includeAiFilters": True,
-        "seed": 0
+        "seed": 0,
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
         for line in response.iter_lines(decode_unicode=True):
             if line and line.startswith("data:"):
-                data_str = line[len("data:"):].strip()
+                data_str = line[len("data:") :].strip()
                 try:
                     data_json = json.loads(data_str)
                     token = data_json.get("message", {}).get("content", "")
@@ -130,30 +135,30 @@ def clova_ai_reply_summary(prompt):
     else:
         return f"Error: {response.status_code} - {response.text}"
 
+
 # -------------------------------------------------------------------
 # 3) 제목 지어주는 AI
 def clova_ai_title_suggestions(input_text):
     # (2) .env에서 불러오기
     base_url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
-    request_id = os.getenv("CLOVA_REQ_ID_TITLE")  
+    request_id = os.getenv("CLOVA_REQ_ID_TITLE")
 
     suggestions = []
-    system_msg = ("사용자가 입력한 내용에 맞는 제목과 부연 설명을 작성해줘. "
-                  "제목은 '제목:'으로, 내용은 '내용:'으로 시작하도록 해줘.")
+    system_msg = (
+        "사용자가 입력한 내용에 맞는 제목과 부연 설명을 작성해줘. "
+        "제목은 '제목:'으로, 내용은 '내용:'으로 시작하도록 해줘."
+    )
 
     for _ in range(3):
         headers = {
             "Authorization": f"Bearer {bearer_token}",
             "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
             "Content-Type": "application/json",
-            "Accept": "text/event-stream"
+            "Accept": "text/event-stream",
         }
         payload = {
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": input_text}
-            ],
+            "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": input_text}],
             "topP": 0.8,
             "topK": 0,
             "maxTokens": 72,
@@ -161,14 +166,14 @@ def clova_ai_title_suggestions(input_text):
             "repeatPenalty": 5.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": 0
+            "seed": 0,
         }
         response = requests.post(base_url, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             title_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
@@ -180,12 +185,13 @@ def clova_ai_title_suggestions(input_text):
             suggestions.append(f"Error: {response.status_code} - {response.text}")
     return suggestions
 
+
 # -------------------------------------------------------------------
 # 4) 사진에 대한 답장 AI
 def clova_ai_reply_suggestions(situation_text):
     base_url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
-    request_id = os.getenv("CLOVA_REQ_ID_OLD_REPLY")  
+    request_id = os.getenv("CLOVA_REQ_ID_OLD_REPLY")
 
     suggestions = []
     system_msg = (
@@ -199,13 +205,10 @@ def clova_ai_reply_suggestions(situation_text):
             "Authorization": f"Bearer {bearer_token}",
             "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
             "Content-Type": "application/json",
-            "Accept": "text/event-stream"
+            "Accept": "text/event-stream",
         }
         payload = {
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": situation_text}
-            ],
+            "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": situation_text}],
             "topP": 0.8,
             "topK": 0,
             "maxTokens": 256,
@@ -213,52 +216,47 @@ def clova_ai_reply_suggestions(situation_text):
             "repeatPenalty": 5.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": seed
+            "seed": seed,
         }
         response = requests.post(base_url, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             reply_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
                         reply_text += token
                     except Exception:
                         continue
-            
+
             reply_text = deduplicate_sentences(reply_text)
             suggestions.append(reply_text)
         else:
             suggestions.append(f"Error: {response.status_code} - {response.text}")
     return suggestions
+
 
 # -------------------------------------------------------------------
 # 5) 이런 느낌으로 써주는 답장 AI
 def clova_ai_new_reply_suggestions(situation_text):
     base_url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
-    request_id = os.getenv("CLOVA_REQ_ID_NEW_REPLY") 
+    request_id = os.getenv("CLOVA_REQ_ID_NEW_REPLY")
 
     suggestions = []
-    system_msg = (
-        "사용자가 입력한 내용을 바탕으로 어떤 답변을 하면 좋을지 작성해줘.\n"
-        "이때 답변 부분만 출력해줘."
-    )
+    system_msg = "사용자가 입력한 내용을 바탕으로 어떤 답변을 하면 좋을지 작성해줘.\n" "이때 답변 부분만 출력해줘."
     for _ in range(3):
         seed = random.randint(0, 10000)
         headers = {
             "Authorization": f"Bearer {bearer_token}",
             "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
             "Content-Type": "application/json",
-            "Accept": "text/event-stream"
+            "Accept": "text/event-stream",
         }
         payload = {
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": situation_text}
-            ],
+            "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": situation_text}],
             "topP": 0.8,
             "topK": 0,
             "maxTokens": 256,
@@ -266,46 +264,47 @@ def clova_ai_new_reply_suggestions(situation_text):
             "repeatPenalty": 5.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": seed
+            "seed": seed,
         }
         response = requests.post(base_url, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             reply_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
                         reply_text += token
                     except Exception:
                         continue
-            
+
             reply_text = deduplicate_sentences(reply_text)
             suggestions.append(reply_text)
         else:
             suggestions.append(f"Error: {response.status_code} - {response.text}")
     return suggestions
+
+
 # -------------------------------------------------------------------
 # 6) 상황 말투 용도  AI
 def clova_ai_style_analysis(prompt):
     url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
-    request_id = os.getenv("CLOVA_REQ_ID_STYLE")  
+    request_id = os.getenv("CLOVA_REQ_ID_STYLE")
 
     headers = {
         "Authorization": f"Bearer {bearer_token}",
         "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
         "Content-Type": "application/json",
-        "Accept": "text/event-stream"
+        "Accept": "text/event-stream",
     }
-    system_msg = ("사용자가 입력한 내용을 보고 상황, 말투, 용도를 출력해줘. "
-                  "출력 형식은 '상황: ...', '말투: ...', '용도: ...'로 해줘.")
+    system_msg = (
+        "사용자가 입력한 내용을 보고 상황, 말투, 용도를 출력해줘. "
+        "출력 형식은 '상황: ...', '말투: ...', '용도: ...'로 해줘."
+    )
     payload = {
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt}
-        ],
+        "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}],
         "topP": 0.8,
         "topK": 0,
         "maxTokens": 256,
@@ -313,14 +312,14 @@ def clova_ai_style_analysis(prompt):
         "repeatPenalty": 5.0,
         "stopBefore": [],
         "includeAiFilters": True,
-        "seed": 0
+        "seed": 0,
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
         for line in response.iter_lines(decode_unicode=True):
             if line and line.startswith("data:"):
-                data_str = line[len("data:"):].strip()
+                data_str = line[len("data:") :].strip()
                 try:
                     data_json = json.loads(data_str)
                     token = data_json.get("message", {}).get("content", "")
@@ -331,6 +330,7 @@ def clova_ai_style_analysis(prompt):
         return result_text
     else:
         return f"Error: {response.status_code} - {response.text}"
+
 
 # -------------------------------------------------------------------
 # 7) 상황 말투 용도 분석 결과 파싱 함수
@@ -352,8 +352,9 @@ def parse_style_analysis(result):
                 usage = parts[1].strip()
     return situation, tone, usage
 
+
 # -------------------------------------------------------------------
-# 8) 제목/내용 파싱 함수 
+# 8) 제목/내용 파싱 함수
 def parse_suggestion(suggestion):
     title = ""
     content = ""
@@ -377,19 +378,20 @@ def parse_suggestion(suggestion):
 MAX_IMAGES = 4
 MAX_REGENERATE = 3
 
+
 class ClovaApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("CLOVA OCR & AI GUI")
         self.geometry("900x700")
-        
+
         # 데이터 저장
         self.mode = None
         self.selected_images = []
         self.ocr_texts = []
-        self.ai_result = ""            # 상황말투용도/답장 등에서 받은 결과
-        self.title_suggestions = []    # 제목 3개
-        self.reply_suggestions = []    # 답장 3개
+        self.ai_result = ""  # 상황말투용도/답장 등에서 받은 결과
+        self.title_suggestions = []  # 제목 3개
+        self.reply_suggestions = []  # 답장 3개
         self.regenerate_count = 0
 
         # 상황,말투,용도 에서 추출한 값
@@ -410,7 +412,7 @@ class ClovaApp(tk.Tk):
         btn_situation.pack(side="left", padx=5, pady=5)
         btn_photo = tk.Button(self.frame_depth1, text="사진을 첨부할게요", command=self.choose_photo_mode)
         btn_photo.pack(side="left", padx=5, pady=5)
-        
+
         # Depth 2
         self.frame_depth2 = tk.LabelFrame(self, text="Depth 2: 입력", padx=10, pady=10)
         # Photo mode
@@ -419,11 +421,11 @@ class ClovaApp(tk.Tk):
         btn_add.pack(side="left", padx=5, pady=5)
         self.listbox_photos = tk.Listbox(self.frame_photo_input, width=40)
         self.listbox_photos.pack(side="left", padx=5, pady=5)
-        #btn_ocr = tk.Button(self.frame_photo_input, text="OCR 실행하기", command=self.run_ocr)
-        #btn_ocr.pack(side="left", padx=5, pady=5)
-        #self.text_ocr = tk.Text(self.frame_photo_input, height=8, width=40)
-        #self.text_ocr.pack(side="left", padx=5, pady=5)
-        self.frame_photo_input.pack_forget() 
+        # btn_ocr = tk.Button(self.frame_photo_input, text="OCR 실행하기", command=self.run_ocr)
+        # btn_ocr.pack(side="left", padx=5, pady=5)
+        # self.text_ocr = tk.Text(self.frame_photo_input, height=8, width=40)
+        # self.text_ocr.pack(side="left", padx=5, pady=5)
+        self.frame_photo_input.pack_forget()
 
         # Situation mode
         self.frame_situation_input = tk.Frame(self.frame_depth2)
@@ -431,21 +433,23 @@ class ClovaApp(tk.Tk):
         lbl_situation.pack(side="top", padx=5, pady=5)
         self.text_situation = tk.Text(self.frame_situation_input, height=8, width=60)
         self.text_situation.pack(side="top", padx=5, pady=5)
-        #self.btn_next_depth2 = tk.Button(self.frame_depth2, text="다음", command=self.go_to_depth3)
-        #self.btn_next_depth2.pack(side="bottom", padx=5, pady=5)
+        # self.btn_next_depth2 = tk.Button(self.frame_depth2, text="다음", command=self.go_to_depth3)
+        # self.btn_next_depth2.pack(side="bottom", padx=5, pady=5)
         self.frame_situation_input.pack_forget()
         self.btn_next_depth2 = tk.Button(self.frame_depth2, text="다음", command=self.go_to_depth3)
         self.btn_next_depth2.pack(side="bottom", padx=5, pady=5)
 
         # Depth 3
         self.frame_depth3 = tk.LabelFrame(self, text="Depth 3: 스타일 선택", padx=10, pady=10)
-        btn_reply = tk.Button(self.frame_depth3, text="이 사진에 대한 답장이 필요해요", 
-                              command=lambda: self.run_ai_analysis("reply"))
+        btn_reply = tk.Button(
+            self.frame_depth3, text="이 사진에 대한 답장이 필요해요", command=lambda: self.run_ai_analysis("reply")
+        )
         btn_reply.pack(side="left", padx=5, pady=5)
-        btn_style = tk.Button(self.frame_depth3, text="이런 느낌으로 써주세요", 
-                              command=lambda: self.run_ai_analysis("style"))
+        btn_style = tk.Button(
+            self.frame_depth3, text="이런 느낌으로 써주세요", command=lambda: self.run_ai_analysis("style")
+        )
         btn_style.pack(side="left", padx=5, pady=5)
-        
+
         # Depth 4
         self.frame_depth4 = tk.LabelFrame(self, text="Depth 4: 결과", padx=10, pady=10)
         self.text_ai = tk.Text(self.frame_depth4, height=8, width=70)
@@ -478,7 +482,7 @@ class ClovaApp(tk.Tk):
         self.frame_depth2.pack(fill="x", padx=10, pady=5)
         self.frame_photo_input.pack(fill="x")
         self.frame_situation_input.pack_forget()
-    
+
     def choose_situation_mode(self):
         self.mode = "situation"
         self.frame_depth1.pack_forget()
@@ -489,8 +493,7 @@ class ClovaApp(tk.Tk):
     # -------------------------------------------------------------
     # 사진 추가 / OCR
     def add_photos(self):
-        files = filedialog.askopenfilenames(title="사진 선택", 
-                                            filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
+        files = filedialog.askopenfilenames(title="사진 선택", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
         if files:
             if len(self.selected_images) + len(files) > MAX_IMAGES:
                 messagebox.showwarning("경고", f"최대 {MAX_IMAGES}장까지 첨부할 수 있습니다.")
@@ -511,8 +514,8 @@ class ClovaApp(tk.Tk):
             if isinstance(result, dict):
                 texts = []
                 try:
-                    for field in result['images'][0]['fields']:
-                        texts.append(field.get('inferText', ''))
+                    for field in result["images"][0]["fields"]:
+                        texts.append(field.get("inferText", ""))
                 except (KeyError, IndexError):
                     texts.append("OCR 결과 오류")
                 result_text = "\n".join(texts)
@@ -548,7 +551,7 @@ class ClovaApp(tk.Tk):
             prompt_text = "\n".join(self.ocr_texts)
         else:
             prompt_text = self.text_situation.get("1.0", tk.END).strip()
-        
+
         # 모든 프레임 초기화
         self.frame_depth3.pack_forget()
         # Depth4 보여주기
@@ -613,7 +616,7 @@ class ClovaApp(tk.Tk):
     def go_to_depth5(self):
         """
         사용자가 수정한 텍스트(스타일 분석 결과)를 기반으로
-        
+
         3가지씩 호출
         """
         # 수정된 텍스트
@@ -655,7 +658,7 @@ class ClovaApp(tk.Tk):
             title, content = parse_suggestion(suggestion)
             subframe = tk.Frame(self.frame_reply_suggestions2, borderwidth=1, relief="solid")
             subframe.grid(row=0, column=idx, padx=5, pady=5, sticky="nsew")
-            
+
             reply_text = (title).strip()
             label_reply = tk.Label(subframe, text=reply_text, wraplength=200)
             label_reply.pack(fill="x", padx=5, pady=5)
