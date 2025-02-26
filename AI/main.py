@@ -5,9 +5,12 @@ def get_user_choice():
     choice = input("선택 (1 또는 2): ")
     return choice.strip()
 
+
 from loguru import logger
-from No_Img import Run_No_Img
-from ocr_v2 import Situation, Situation_Accent_Purpose, Reply_Suggestions, New_Reply_Suggestions, New_Reply_Suggestions_Detailed
+from ocr_v2 import (
+    Situation_Accent_Purpose,
+    New_Reply_Suggestions_Detailed,
+)
 
 # test1: 이미지 -> 상황파악
 # Situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
@@ -23,7 +26,9 @@ from ocr_v2 import Situation, Situation_Accent_Purpose, Reply_Suggestions, New_R
 # print(New_Reply_Suggestions(situation, accent, purpose))
 
 # test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
-situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+situation, accent, purpose = Situation_Accent_Purpose(
+    ["./OCR_Test1.png", "./OCR_Test2.png", "./OCR_Test3.png", "./OCR_Test4.png"]
+)
 logger.info("추가적으로 디테일한 정보 입력:\n")
 detail = input()
 print(New_Reply_Suggestions_Detailed(situation, accent, purpose, detail))
