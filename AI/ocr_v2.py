@@ -229,7 +229,7 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
 
 # -------------------------------------------------------------------
 # 4) 사진에 대한 답장 AI
-def CLOVA_AI_Reply_Suggestions(situation_text: str) -> str:
+def CLOVA_AI_Reply_Suggestions(situation_text: str) -> list[str]:
     config = load_config("./config/config_Reply_Suggestions.yaml")
 
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
@@ -458,15 +458,14 @@ def analyze_situation_accent_purpose(image_files: list[tuple[str, bytes]]) -> tu
 
 # -------------------------------------------------------------------
 # [3] [1]의 상황을 기반으로 글 제안을 생성하는 함수
-def generate_suggestions(image_files: list[tuple[str, bytes]]) -> list[str, str, str]:
-    situation = analyze_situation(image_files)
+def generate_suggestions_situation(situation: str) -> list[str]:
     suggestions = CLOVA_AI_Reply_Suggestions(situation)
     return suggestions
 
 
 # -------------------------------------------------------------------
 # [4] [2]의 상황, 말투, 용도를 기반으로 글 제안을 생성하는 함수
-def generate_reply_suggestions(situation: str, accent: str, purpose: str) -> list[str, str, str]:
+def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpose: str) -> list[str]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose)
     return suggestions
 
@@ -475,6 +474,6 @@ def generate_reply_suggestions(situation: str, accent: str, purpose: str) -> lis
 # [5] 상황, 말투, 용도, 상세 설명을 기반으로 글 제안을 생성하는 함수
 def generate_reply_suggestions_detail(
     situation: str, accent: str, purpose: str, detailed_description: str
-) -> list[str, str, str]:
+) -> list[str]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
     return suggestions

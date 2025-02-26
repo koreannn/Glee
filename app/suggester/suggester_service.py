@@ -8,7 +8,11 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
 
-
+from AI.ocr_v2 import (
+    generate_reply_suggestions_detail,
+    generate_reply_suggestions_accent_purpose,
+    generate_suggestions_situation,
+)
 from app.suggester.suggester_collection import SuggesterCollection
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 
@@ -59,3 +63,17 @@ class SuggesterService:
     async def delete_suggestion(suggestion_id: str) -> bool:
         """AI 추천 데이터 삭제"""
         return await SuggesterCollection.delete(suggestion_id)
+
+    @staticmethod
+    async def generate_suggestions(
+        situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
+    ) -> list[str]:
+        if situation and tone and usage and detail:
+            suggestions = generate_reply_suggestions_detail(situation, tone, usage, detail)
+        elif situation and tone and usage:
+            suggestions = generate_reply_suggestions_accent_purpose(situation, tone, usage)
+        elif situation:
+            suggestions = generate_suggestions_situation(situation)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid Generate Suggestion Request")
+        return suggestions

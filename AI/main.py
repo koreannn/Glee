@@ -9,7 +9,8 @@ def get_user_choice():
 from loguru import logger
 from ocr_v2 import (
     analyze_situation_accent_purpose,
-    generate_reply_suggestions_detail, analyze_situation,
+    generate_reply_suggestions_detail,
+    analyze_situation,
 )
 
 # test1: 이미지 -> 상황파악

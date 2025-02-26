@@ -68,7 +68,9 @@ async def generate_suggestion(
 ) -> GenerateSuggestionResponse:
 
     # TODO AI API 호출해서 올리는거
-    suggestions = ["suggestion", "suggestion", "suggestion"]
+    suggestions = await SuggesterService.generate_suggestions(
+        situation=request.situation, tone=request.tone, usage=request.usage, detail=request.detail
+    )
 
     return GenerateSuggestionResponse(suggestions=suggestions)
 
