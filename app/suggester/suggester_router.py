@@ -12,7 +12,7 @@ from app.suggester.suggester_response import (
     GetMySuggestionsResponse,
     DeleteSuggestionResponse,
 )
-from app.suggester.enums import PurposeType
+from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
 from app.user.user_document import UserDocument
 from app.utils.jwt_handler import JwtHandler

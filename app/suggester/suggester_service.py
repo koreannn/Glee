@@ -13,6 +13,7 @@ from AI.ocr_v2 import (
     generate_reply_suggestions_accent_purpose,
     generate_suggestions_situation,
 )
+from app.core.enums import SuggestionTagType
 from app.suggester.suggester_collection import SuggesterCollection
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 
@@ -33,11 +34,13 @@ class SuggesterService:
     #         return ""
 
     @staticmethod
-    async def create_suggestion(user_id: ObjectId, tag: list[str], suggestion: str) -> SuggesterDocument:
+    async def create_suggestion(user_id: ObjectId, tag: list[SuggestionTagType], suggestion: str) -> SuggesterDocument:
         """Suggestion 저장하기"""
+
+        tag_str = [str(tag) for tag in tag]
         suggestion_dto = SuggesterDTO(
             user_id=user_id,
-            tag=tag,
+            tag=tag_str,
             suggestion=suggestion,
             updated_at=datetime.now(),
             created_at=datetime.now(),

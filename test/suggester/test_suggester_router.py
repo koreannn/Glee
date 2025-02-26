@@ -5,7 +5,7 @@ from unittest.mock import patch, AsyncMock
 from bson import ObjectId
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.suggester.enums import PurposeType
+from app.core.enums import PurposeType, SuggestionTagType
 from app.suggester.suggester_document import SuggesterDocument
 
 
@@ -13,9 +13,7 @@ from app.suggester.suggester_document import SuggesterDocument
 async def test_save_suggestion(auth_header: dict[str, str]) -> None:
     """유저가 생성한 AI 글제안 - 저장"""
 
-    from app.suggester.suggester_request import SaveSuggestionRequest
-
-    data = SaveSuggestionRequest(tags=["AI", "Machine Learning"], suggestion="This is a test suggestion").model_dump()
+    data = {"tags": [SuggestionTagType.APOLOGY.value], "suggestion": "This is a test suggestion"}
 
     with patch(
         "app.suggester.suggester_service.SuggesterService.create_suggestion", new_callable=AsyncMock
@@ -69,14 +67,14 @@ async def test_get_my_suggestions(auth_header: dict[str, str]) -> None:
         mock_get_my_suggestions.return_value = [
             AsyncMock(
                 id=str(ObjectId()),
-                tag=["AI"],
+                tag=[SuggestionTagType.FAVORITES],
                 suggestion="First test",
                 updated_at="2024-02-25T12:00:00",
                 created_at="2024-02-25T12:00:00",
             ),
             AsyncMock(
                 id=str(ObjectId()),
-                tag=["Python"],
+                tag=[SuggestionTagType.SCHOOL],
                 suggestion="Second test",
                 updated_at="2024-02-25T12:00:00",
                 created_at="2024-02-25T12:00:00",

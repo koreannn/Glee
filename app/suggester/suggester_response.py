@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel
-from app.suggester.enums import PurposeType
+from app.core.enums import PurposeType, SuggestionTagType
 
 
 class AnalyzeImagesConversationResponse(BaseModel):
@@ -17,7 +17,7 @@ class GenerateSuggestionResponse(BaseModel):
 
 class SuggestionResponse(BaseModel):
     id: str
-    tags: list[str]
+    tags: list[SuggestionTagType]
     suggestion: str
     updated_at: datetime
     created_at: datetime

@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.core.enums import SuggestionTagType
+
 
 class GenerateSuggestionRequest(BaseModel):
     situation: str
@@ -10,4 +12,4 @@ class GenerateSuggestionRequest(BaseModel):
 
 class SaveSuggestionRequest(BaseModel):
     suggestion: str
-    tags: list[str]
+    tags: list[SuggestionTagType]

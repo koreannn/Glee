@@ -12,6 +12,7 @@ from typing import Any
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from app.core.enums import SuggestionTagType
 from app.core.settings import settings
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 from app.utils import mongo  # 기존 MongoDB 설정을 임포트
@@ -62,17 +63,18 @@ async def exists_suggestion() -> SuggesterDocument:
 
     suggester_dto = SuggesterDTO(
         user_id=ObjectId("67bd950e6a524a8132db160d"),
-        tag=["AI", "NLP"],
+        tag=[SuggestionTagType.SCHOOL.value, SuggestionTagType.APOLOGY.value],
         suggestion="Test suggestion",
         updated_at=datetime.now(),
         created_at=datetime.now(),
     )
 
     result = await suggestion_collection.insert_one(asdict(suggester_dto))
+    tag = [SuggestionTagType(tag) for tag in suggester_dto.tag]
     return SuggesterDocument(
         _id=result.inserted_id,  # ✅ 삽입된 ObjectId 사용
         user_id=suggester_dto.user_id,
-        tag=suggester_dto.tag,
+        tag=tag,
         suggestion=suggester_dto.suggestion,
         created_at=suggester_dto.created_at,
         updated_at=suggester_dto.updated_at,
