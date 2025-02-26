@@ -1,8 +1,11 @@
+from pathlib import Path
+
 import pytest
 from unittest.mock import patch, AsyncMock
 from bson import ObjectId
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.suggester.enums import PurposeType
 from app.suggester.suggester_document import SuggesterDocument
 
 
@@ -114,3 +117,53 @@ async def test_delete_suggestion(exists_suggestion: SuggesterDocument, auth_head
 
     assert response.status_code == 200
     assert response.json()["message"] == "Suggestion deleted successfully"
+
+
+@pytest.mark.asyncio
+async def test_analyze_images_to_response_to_photo(test_image_path: Path, auth_header: dict[str, str]) -> None:
+
+    # 파일을 바이너리 모드로 읽기
+    with open(test_image_path, "rb") as f:
+        image_data = f.read()
+
+    # 업로드할 파일 리스트
+    files = {
+        "image_file_1": ("test_image.jpg", image_data, "image/png"),
+        "image_file_2": ("test_image.jpg", image_data, "image/png"),
+    }
+    purpose_value = str(PurposeType.PHOTO_RESPONSE.value)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            "/suggester/analyze/image", files=files, data={"purpose": purpose_value}, headers=auth_header
+        )
+
+    assert response.status_code == 200
+    assert response.json()["purpose"] == PurposeType.PHOTO_RESPONSE.value
+    assert response.json()["tone"] == ""
+    assert response.json()["usage"] == ""
+
+
+@pytest.mark.asyncio
+async def test_analyze_images_to_similar_vibe(test_image_path: Path, auth_header: dict[str, str]) -> None:
+
+    # 파일을 바이너리 모드로 읽기
+    with open(test_image_path, "rb") as f:
+        image_data = f.read()
+
+    # 업로드할 파일 리스트
+    files = {
+        "image_file_1": ("test_image.jpg", image_data, "image/png"),
+        "image_file_2": ("test_image.jpg", image_data, "image/png"),
+    }
+    purpose_value = str(PurposeType.SIMILAR_VIBE_RESPONSE.value)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            "/suggester/analyze/image", files=files, data={"purpose": purpose_value}, headers=auth_header
+        )
+
+    assert response.status_code == 200
+    assert response.json()["purpose"] == PurposeType.SIMILAR_VIBE_RESPONSE.value
+    assert response.json()["tone"] != ""
+    assert response.json()["usage"] != ""

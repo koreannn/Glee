@@ -2,6 +2,7 @@ import asyncio
 from dataclasses import asdict
 from datetime import datetime
 from asyncio import AbstractEventLoop
+from pathlib import Path
 from typing import Generator
 
 import pytest_asyncio
@@ -76,3 +77,8 @@ async def exists_suggestion() -> SuggesterDocument:
         created_at=suggester_dto.created_at,
         updated_at=suggester_dto.updated_at,
     )
+
+
+@pytest_asyncio.fixture(scope="function")
+async def test_image_path() -> Path:
+    return Path(__file__).parent / "assets/test.png"

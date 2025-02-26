@@ -8,8 +8,8 @@ def get_user_choice():
 
 from loguru import logger
 from ocr_v2 import (
-    Situation_Accent_Purpose,
-    New_Reply_Suggestions_Detailed,
+    analyze_situation_accent_purpose,
+    generate_reply_suggestions_detail, analyze_situation,
 )
 
 # test1: 이미지 -> 상황파악
@@ -26,9 +26,9 @@ from ocr_v2 import (
 # print(New_Reply_Suggestions(situation, accent, purpose))
 
 # test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
-situation, accent, purpose = Situation_Accent_Purpose(
+situation, accent, purpose = analyze_situation_accent_purpose(
     ["./OCR_Test1.png", "./OCR_Test2.png", "./OCR_Test3.png", "./OCR_Test4.png"]
 )
 logger.info("추가적으로 디테일한 정보 입력:\n")
 detail = input()
-print(New_Reply_Suggestions_Detailed(situation, accent, purpose, detail))
+print(generate_reply_suggestions_detail(situation, accent, purpose, detail))

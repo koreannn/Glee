@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     CLOVA_REQ_ID_OLD_REPLY: str
     CLOVA_REQ_ID_NEW_REPLY: str
     CLOVA_REQ_ID_STYLE: str
+    CLOVA_REQ_ID_glee: str
 
     # ✅ dev 환경에서만 포함
     test_mongo_uri: str | None = None
