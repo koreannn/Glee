@@ -17,7 +17,7 @@ from app.suggester.suggester_service import SuggesterService
 from app.user.user_document import UserDocument
 from app.utils.jwt_handler import JwtHandler
 
-router = APIRouter(prefix="/suggester", tags=["Analyze"])
+router = APIRouter(prefix="/suggester", tags=["suggester"])
 logger = logging.getLogger(__name__)
 
 
@@ -75,7 +75,7 @@ async def generate_suggestion(
     return GenerateSuggestionResponse(suggestions=suggestions)
 
 
-@router.post("/", response_model=SuggestionResponse, summary="유저가 생성한 글제안 - 저장")
+@router.post("", response_model=SuggestionResponse, summary="유저가 생성한 글제안 - 저장")
 async def save_suggestion(
     request: SaveSuggestionRequest,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
