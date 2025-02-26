@@ -10,7 +10,7 @@ from datetime import datetime
 async def test_create_suggestion() -> None:
     """AI 추천 데이터를 저장하는 서비스 로직 테스트"""
     user_id = ObjectId()
-    tag = [SuggestionTagType.APOLOGY.value, SuggestionTagType.COMFORT.value]
+    tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "Test AI generated suggestion"
 
     document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
@@ -24,7 +24,7 @@ async def test_create_suggestion() -> None:
 async def test_get_suggestion_by_id() -> None:
     """저장된 AI 추천 데이터를 가져오는 서비스 로직 테스트"""
     user_id = ObjectId()
-    tag = [SuggestionTagType.APOLOGY.value, SuggestionTagType.COMFORT.value]
+    tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "Fetching from DB"
 
     document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
@@ -40,7 +40,7 @@ async def test_get_suggestion_by_id() -> None:
 async def test_delete_suggestion() -> None:
     """저장된 AI 추천 데이터를 삭제하는 서비스 로직 테스트"""
     user_id = ObjectId()
-    tag = [SuggestionTagType.APOLOGY.value, SuggestionTagType.COMFORT.value]
+    tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "This will be deleted"
 
     document = await SuggesterService.create_suggestion(user_id, tag, suggestion)

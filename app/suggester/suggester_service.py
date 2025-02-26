@@ -37,7 +37,7 @@ class SuggesterService:
     async def create_suggestion(user_id: ObjectId, tag: list[SuggestionTagType], suggestion: str) -> SuggesterDocument:
         """Suggestion 저장하기"""
 
-        tag_str = [str(tag) for tag in tag]
+        tag_str = [tag.value for tag in tag]
         suggestion_dto = SuggesterDTO(
             user_id=user_id,
             tag=tag_str,

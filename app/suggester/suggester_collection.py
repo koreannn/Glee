@@ -16,10 +16,10 @@ class SuggesterCollection:
     async def create(cls, suggester_dto: SuggesterDTO) -> SuggesterDocument:
         """MongoDB에 데이터 저장 후 ObjectId 반환"""
         result = await cls._collection.insert_one(asdict(suggester_dto))
-        tag = [SuggestionTagType(tag) for tag in suggester_dto.tag]
+        tags = [SuggestionTagType(tag) for tag in suggester_dto.tag]
         return SuggesterDocument(
             user_id=suggester_dto.user_id,
-            tag=tag,
+            tag=tags,
             suggestion=suggester_dto.suggestion,
             created_at=suggester_dto.created_at,
             updated_at=suggester_dto.updated_at,
