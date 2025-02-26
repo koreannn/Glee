@@ -230,7 +230,6 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
 # -------------------------------------------------------------------
 # 4) 사진에 대한 답장 AI
 def CLOVA_AI_Reply_Suggestions(situation_text: str) -> list[str]:
-    config = load_config("./config/config_Reply_Suggestions.yaml")
 
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
