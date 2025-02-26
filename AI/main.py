@@ -7,27 +7,23 @@ def get_user_choice():
 
 from loguru import logger
 from No_Img import Run_No_Img
-from ocr_v2 import CLOVA_OCR, CLOVA_AI_Reply_Summary, CLOVA_AI_Title_Suggestions
+from ocr_v2 import Situation, Situation_Accent_Purpose, Reply_Suggestions, New_Reply_Suggestions, New_Reply_Suggestions_Detailed
 
-choice = get_user_choice()
+# test1: 이미지 -> 상황파악
+# Situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
 
-if choice == "1": # OCR
-    OCR_Text = CLOVA_OCR(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
-    logger.info("OCR 결과를 기반으로 답변 생성 로직 진행...")
-    print("'답장' 1번 OR '이런 느낌으로 작성해주세요' 2번: ")
-    choice = input()
-    if choice == "1": # 답장 (상황만 요약) -> CLOVA_AI_Reply_Summary
-        situation_summary = CLOVA_AI_Reply_Summary(OCR_Text)
-        title = CLOVA_AI_Title_Suggestions(OCR_Text) # 제목 생성해보기
-        
-    # elif choice == "2": # 이런 느낌으로 작성해주세요: 상황, 말투, 용도 세 가지를 리턴해야
-        
+# test2: 이미지 -> 상황파악 + 말투 + 용도
+# Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
 
-elif choice == "2": # 사진 없이
-    logger.info("No Image")
-    result = Run_No_Img()
+# # test3: 이미지 -> 답변 추천
+# print(Reply_Suggestions(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"]))
 
-logger.info("내용 요약 중")
+# # test4: 상황+말투+용도 -> 새로운 답변 추천
+# situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+# print(New_Reply_Suggestions(situation, accent, purpose))
 
-
-
+# test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
+situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+logger.info("추가적으로 디테일한 정보 입력:\n")
+detail = input()
+print(New_Reply_Suggestions_Detailed(situation, accent, purpose, detail))
