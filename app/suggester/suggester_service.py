@@ -19,19 +19,6 @@ from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 
 
 class SuggesterService:
-    #
-    #     @classmethod
-    #     async def extract_situations(cls, images: list[UploadFile]) -> str:
-    #         prompt = ""
-    #         for image in images:
-    #             prompt += clova_ocr(image)
-    #
-    #         extracted_text = clova_ai_reply_summary(prompt)
-    #         return extracted_text
-    #
-    #     @classmethod
-    #     async def analyze_image(cls, image_url: str) -> str:
-    #         return ""
 
     @staticmethod
     async def create_suggestion(user_id: ObjectId, tag: list[SuggestionTagType], suggestion: str) -> SuggesterDocument:
@@ -80,3 +67,10 @@ class SuggesterService:
         else:
             raise HTTPException(status_code=400, detail="Invalid Generate Suggestion Request")
         return suggestions
+
+    @staticmethod
+    async def update_suggestion_tags(
+        suggestion_id: str,
+        tags: list[SuggestionTagType],
+    ) -> SuggesterDocument:
+        return await SuggesterCollection.update_tag(suggestion_id, tags)

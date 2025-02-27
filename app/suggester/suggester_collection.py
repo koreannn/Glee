@@ -1,5 +1,8 @@
 from dataclasses import asdict
+from datetime import datetime
 from typing import Any
+
+from pymongo import ReturnDocument
 
 from app.core.enums import SuggestionTagType
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
@@ -48,3 +51,25 @@ class SuggesterCollection:
         """추천 데이터 삭제"""
         result = await cls._collection.delete_one({"_id": ObjectId(suggestion_id)})
         return result.deleted_count > 0
+
+    @classmethod
+    async def update_tag(cls, suggestion_id: str, tags: list[SuggestionTagType]) -> SuggesterDocument:
+        tags_str = [tag.value for tag in tags]
+
+        updated_doc = await cls._collection.find_one_and_update(
+            {"_id": ObjectId(suggestion_id)},
+            {"$set": {"tag": tags_str, "updated_at": datetime.now()}},
+            return_document=ReturnDocument.AFTER,  # 업데이트된 문서를 반환
+        )
+
+        if not updated_doc:
+            raise ValueError("Suggestion not found")
+
+        return SuggesterDocument(
+            user_id=updated_doc["user_id"],
+            tag=tags,
+            suggestion=updated_doc["suggestion"],
+            created_at=updated_doc["created_at"],
+            updated_at=updated_doc["updated_at"],
+            _id=updated_doc["_id"],
+        )

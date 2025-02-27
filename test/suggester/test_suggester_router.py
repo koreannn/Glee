@@ -155,7 +155,6 @@ async def test_analyze_images_to_similar_vibe(test_image_path: Path, auth_header
         "image_file_2": ("test_image.jpg", image_data, "image/png"),
     }
     purpose_value = str(PurposeType.SIMILAR_VIBE_RESPONSE.value)
-
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/suggester/analyze/image", files=files, data={"purpose": purpose_value}, headers=auth_header

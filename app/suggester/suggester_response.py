@@ -30,3 +30,7 @@ class GetMySuggestionsResponse(BaseModel):
 class DeleteSuggestionResponse(BaseModel):
     message: str
     deleted_suggestion_id: str
+
+
+class PutSuggestionRE(BaseModel):
+    suggestions: list[SuggestionResponse]

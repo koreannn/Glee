@@ -44,10 +44,26 @@ async def test_delete_suggestion() -> None:
     suggestion = "This will be deleted"
 
     document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
-
     success = await SuggesterService.delete_suggestion(str(document.id))
     assert success is True
 
     # 삭제 후 다시 조회
     with pytest.raises(Exception):
         await SuggesterService.get_suggestion_by_id(str(document.id))
+
+
+@pytest.mark.asyncio
+async def test_update_suggestion_tags() -> None:
+    """저장된 AI 추천 데이터를 삭제하는 서비스 로직 테스트"""
+    user_id = ObjectId()
+    tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
+    update_tag = [SuggestionTagType.SCHOOL, SuggestionTagType.COMFORT]
+    suggestion = "This will be deleted"
+
+    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
+
+    updated_document = await SuggesterService.update_suggestion_tags(str(document.id), update_tag)
+
+    assert updated_document.id == document.id
+    assert updated_document.tag == update_tag
+    # 삭제 후 다시 조회

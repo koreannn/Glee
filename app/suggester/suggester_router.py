@@ -4,7 +4,11 @@ from typing import Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
 
 from AI.ocr_v2 import analyze_situation, analyze_situation_accent_purpose
-from app.suggester.suggester_request import GenerateSuggestionRequest, SaveSuggestionRequest
+from app.suggester.suggester_request import (
+    GenerateSuggestionRequest,
+    SaveSuggestionRequest,
+    UpdateSuggestionTagsRequest,
+)
 from app.suggester.suggester_response import (
     AnalyzeImagesConversationResponse,
     GenerateSuggestionResponse,
@@ -32,7 +36,6 @@ async def analyze_images(
     image_file_2: Optional[UploadFile] = File(None),
     image_file_3: Optional[UploadFile] = File(None),
     image_file_4: Optional[UploadFile] = File(None),
-    user: UserDocument = Depends(JwtHandler.get_current_user),
 ) -> AnalyzeImagesConversationResponse:
 
     image_files = [file for file in [image_file_1, image_file_2, image_file_3, image_file_4] if file is not None]
@@ -64,7 +67,6 @@ async def analyze_images(
 )
 async def generate_suggestion(
     request: GenerateSuggestionRequest,
-    user: UserDocument = Depends(JwtHandler.get_current_user),
 ) -> GenerateSuggestionResponse:
 
     # TODO AI API 호출해서 올리는거
@@ -158,4 +160,27 @@ async def delete_suggestion(
     return DeleteSuggestionResponse(
         message="Suggestion deleted successfully",
         deleted_suggestion_id=suggestion_id,
+    )
+
+
+@router.put("/tag")
+async def update_suggestion_tag(
+    request: UpdateSuggestionTagsRequest, user: UserDocument = Depends(JwtHandler.get_current_user)
+) -> SuggestionResponse:
+    suggestion = await SuggesterService.get_suggestion_by_id(request.suggestion_id)
+
+    if not suggestion:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+
+    if suggestion.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    updated_suggestion = await SuggesterService.update_suggestion_tags(request.suggestion_id, request.tags)
+
+    return SuggestionResponse(
+        id=str(updated_suggestion.id),
+        tags=updated_suggestion.tag,
+        suggestion=updated_suggestion.suggestion,
+        updated_at=updated_suggestion.updated_at,
+        created_at=updated_suggestion.created_at,
     )

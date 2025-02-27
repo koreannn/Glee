@@ -7,10 +7,8 @@ from typing import Generator
 
 import pytest_asyncio
 
-from typing import Any
 
 from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.core.enums import SuggestionTagType
 from app.core.settings import settings
@@ -23,16 +21,6 @@ def event_loop() -> Generator[AbstractEventLoop, None, None]:
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
-
-
-@pytest_asyncio.fixture(scope="session")
-async def test_db() -> None:
-    """테스트용 MongoDB 연결"""
-    client: AsyncIOMotorClient[Any] = AsyncIOMotorClient(settings.test_mongo_uri)
-    test_db = client["test_db"]
-
-    # 기존 MongoDB 설정을 테스트용 DB로 변경
-    mongo.db = test_db
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)

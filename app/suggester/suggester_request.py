@@ -13,3 +13,8 @@ class GenerateSuggestionRequest(BaseModel):
 class SaveSuggestionRequest(BaseModel):
     suggestion: str
     tags: list[SuggestionTagType]
+
+
+class UpdateSuggestionTagsRequest(BaseModel):
+    suggestion_id: str
+    tags: list[SuggestionTagType]

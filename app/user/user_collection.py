@@ -5,6 +5,7 @@ from dataclasses import asdict
 
 
 class UserCollection:
+
     _collection = db["users"]
 
     @classmethod
