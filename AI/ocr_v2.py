@@ -6,6 +6,13 @@ import json
 import random
 from dotenv import load_dotenv
 import yaml
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Chroma
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.document_loaders import WebBaseLoader
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
+from langchain_community.llms import HuggingFaceHub
 
 from loguru import logger
 
@@ -256,13 +263,32 @@ def CLOVA_AI_Reply_Suggestions(situation_text: str) -> str:
 # -------------------------------------------------------------------
 # 5) 이런 느낌으로 써주는 답장 AI (사진 기반으로 상황, 말투, 용도 분석 -> 답변 생성)
 def CLOVA_AI_New_Reply_Suggestions(
-    situation_text: str, accent: str = None, purpose: str = None, detailed_description: str = "없음"
+    situation_text: str,
+    accent: str = None,
+    purpose: str = None,
+    detailed_description: str = "없음",
+    use_rag: bool = True,
 ) -> list[str]:
+    """
+    RAG 기능이 추가된 답변 생성 함수
+    """
+    config = load_config("./config/config_New_Reply_Suggestions.yaml")
+
+    if use_rag:
+        # RAG 서비스를 통해 관련 문서 검색
+        rag_service = RAGService()
+        search_query = f"{purpose} 작성법 예시"
+        relevant_texts = rag_service.get_relevant_texts(search_query)
+
+        # 관련 문서가 있다면 프롬프트에 추가
+        if relevant_texts:
+            reference_text = "\n\n참고 자료:\n" + "\n".join(relevant_texts)
+            detailed_description = detailed_description + reference_text
+
+    # 기존 CLOVA AI 로직 사용
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
     REQUEST_ID = os.getenv("CLOVA_REQ_ID_NEW_REPLY")
-
-    config = load_config("./config/config_New_Reply_Suggestions.yaml")
 
     # 상황, 말투, 용도 정보를 포함한 입력 텍스트 생성
     input_text = f"상황: {situation_text}"
@@ -419,6 +445,106 @@ def New_Reply_Suggestions(situation: str, accent: str, purpose: str) -> list[str
 
 # -------------------------------------------------------------------
 # [5] 상황, 말투, 용도, 상세 설명을 기반으로 글 제안을 생성하는 함수
-def New_Reply_Suggestions_Detailed(situation: str, accent: str, purpose: str, detailed_description: str) -> list[str, str, str]:
+def New_Reply_Suggestions_Detailed(
+    situation: str, accent: str, purpose: str, detailed_description: str
+) -> list[str, str, str]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
+    return suggestions
+
+
+def web_search_and_retrieve(query: str, num_results: int = 3) -> str:
+    """
+    웹 검색을 통해 관련 문서를 찾고 벡터 저장소에 저장하는 함수
+    """
+    # Google Custom Search API 설정
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+
+    search_url = "https://www.googleapis.com/customsearch/v1"
+    params = {"key": GOOGLE_API_KEY, "cx": GOOGLE_CSE_ID, "q": query}
+
+    try:
+        response = requests.get(search_url, params=params)
+        results = response.json()
+
+        urls = [item["link"] for item in results.get("items", [])[:num_results]]
+
+        # 웹 페이지 로드
+        loader = WebBaseLoader(urls)
+        documents = loader.load()
+
+        # 텍스트 분할
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        splits = text_splitter.split_documents(documents)
+
+        # 임베딩 및 벡터 저장소 생성
+        embeddings = HuggingFaceEmbeddings(model_name="jhgan/ko-sbert-nli", model_kwargs={"device": "cpu"})
+        vectorstore = Chroma.from_documents(splits, embeddings)
+
+        return vectorstore
+
+    except Exception as e:
+        logger.error(f"웹 검색 중 오류 발생: {e}")
+        return None
+
+
+def generate_rag_response(situation: str, accent: str, purpose: str, detailed_description: str = "없음") -> list[str]:
+    """
+    RAG를 활용하여 개선된 답변을 생성하는 함수
+    """
+    # 검색 쿼리 생성
+    search_query = f"{purpose} 작성법 예시"
+
+    # 웹 검색 및 문서 검색
+    vectorstore = web_search_and_retrieve(search_query)
+    if not vectorstore:
+        return CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
+
+    # 프롬프트 템플릿 생성
+    prompt_template = """
+    다음 정보를 바탕으로 적절한 답변을 작성해주세요:
+
+    상황: {situation}
+    말투: {accent}
+    용도: {purpose}
+    추가 설명: {detailed_description}
+
+    참고 자료:
+    {context}
+
+    위 정보를 종합하여 상황에 맞는 적절한 답변을 작성해주세요.
+    """
+
+    PROMPT = PromptTemplate(
+        template=prompt_template, input_variables=["situation", "accent", "purpose", "detailed_description", "context"]
+    )
+
+    # Retrieval QA 체인 생성
+    llm = HuggingFaceHub(
+        repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_TOKEN")
+    )
+
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),
+        chain_type_kwargs={"prompt": PROMPT},
+    )
+
+    suggestions = []
+    for _ in range(3):
+        try:
+            response = qa_chain.run(
+                {
+                    "situation": situation,
+                    "accent": accent,
+                    "purpose": purpose,
+                    "detailed_description": detailed_description,
+                }
+            )
+            suggestions.append(deduplicate_sentences(response))
+        except Exception as e:
+            logger.error(f"RAG 응답 생성 중 오류 발생: {e}")
+            suggestions.append("응답 생성 중 오류가 발생했습니다.")
+
     return suggestions
