@@ -13,7 +13,7 @@ class JwtHandler:
     JWT_SECRET = settings.secret_key
     JWT_ALGORITHM = "HS256"
 
-    JWT_EXPIRATION_MINUTES = 60  # JWT 토큰 만료 시간 (1시간)
+    JWT_EXPIRATION_MINUTES = 600  # JWT 토큰 만료 시간 (1시간)
 
     @classmethod
     def create_jwt_token(cls, data: dict[Any, Any]) -> str:
