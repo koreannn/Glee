@@ -11,22 +11,23 @@ from utils.get_headers_payloads import get_headers_payloads
 
 load_dotenv()  # .env 파일 로드
 
+
 def load_config(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     return config
 
+
 # 사용자 선택 글제안 ai(노션에 키값 추가했습니다다)
 def clova_ai_glee(prompt):
     config = load_config("./AI/config/config_case5.yaml")
-    
+
     url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
     request_id = os.getenv("CLOVA_REQ_ID_glee")
 
     headers, payload = get_headers_payloads(config, prompt)
-    
-    
+
     response = requests.post(url, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
@@ -53,11 +54,11 @@ def clova_ai_title_suggestions(input_text):
     request_id = os.getenv("CLOVA_REQ_ID_TITLE")
 
     suggestions = []
-    system_msg = '''
+    system_msg = """
     사용자가 입력한 내용에 맞는 제목을 작성해줘. 출력은 문장만 출력해줘
-    
-    
-    '''
+
+
+    """
 
     for _ in range(3):
         headers = {

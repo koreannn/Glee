@@ -30,7 +30,7 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
 
     for _ in range(3):  # 새로 고침 하면 새로운 생성을 만들어내도록 수정
         headers, payload = get_headers_payloads(str(config_path), input_text)
-        
+
         response = requests.post(BASE_URL, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             title_text = ""

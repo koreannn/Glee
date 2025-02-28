@@ -5,6 +5,7 @@ import json
 
 from utils.deduplicate_sentence import deduplicate_sentences
 
+
 # 사용자 설정 글 제안 AI
 def clova_ai_glee(prompt: str) -> str:
 
