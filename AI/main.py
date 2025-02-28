@@ -15,35 +15,30 @@ from services.videosearch_service import VideoSearchService
 # )
 
 
-# test1: 이미지 -> 상황파악
-# Situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
-
-# test2: 이미지 -> 상황파악 + 말투 + 용도
-# Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
-
-# # test3: 이미지 -> 답변 추천
-# print(Reply_Suggestions(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"]))
-
-# # test4: 상황+말투+용도 -> 새로운 답변 추천
-# situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
-# print(New_Reply_Suggestions(situation, accent, purpose))
-
-
-# # test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
-# situation, accent, purpose = Situation_Accent_Purpose(
-#     ["./OCR_Test1.png", "./OCR_Test2.png", "./OCR_Test3.png", "./OCR_Test4.png"]
-# )
-# logger.info("추가적으로 디테일한 정보 입력:\n")
-# detail = input()
-# print(New_Reply_Suggestions_Detailed(situation, accent, purpose, detail))
-
-# video_search_service = VideoSearchService()
-# video_search_service.youtube_search("바나나")
-# rag_service.get_video_transcripts({'id': 'feWQ3yT5ybg', 'title': '사과와 이것 함께 먹었더니 의사들도 놀란 변화가 일어났어요.사과와 상극인 음식. ,다이어트식품,건강음식,사과의 효능,당근의 효능,당뇨음식,혈당,혈관청소음식,노년기 건강.', 'description': '사과와 이것 함께 먹으면 의사들도 깜짝 놀란 변화가 일어납니다. 건강에 좋다는 사과도 잘못 드시면 오히려 건강을 해치는 독이 ...', 'url': 'https://www.youtube.com/watch?v=feWQ3yT5ybg'})
-# video_search_service.extract_video_id("https://www.youtube.com/watch?v=yq8JsP-qKVs")
-
 
 def main():
+    # test1: 이미지 -> 상황파악
+    # Situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+
+    # test2: 이미지 -> 상황파악 + 말투 + 용도
+    # Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+
+    # # test3: 이미지 -> 답변 추천
+    # print(Reply_Suggestions(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"]))
+
+    # # test4: 상황+말투+용도 -> 새로운 답변 추천
+    # situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+    # print(New_Reply_Suggestions(situation, accent, purpose))
+
+
+    # # test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
+    # situation, accent, purpose = Situation_Accent_Purpose(
+    #     ["./OCR_Test1.png", "./OCR_Test2.png", "./OCR_Test3.png", "./OCR_Test4.png"]
+    # )
+    # logger.info("추가적으로 디테일한 정보 입력:\n")
+    # detail = input()
+    # print(New_Reply_Suggestions_Detailed(situation, accent, purpose, detail))
+    
     # 로거 설정
     logger.add("logs/app.log", rotation="500 MB")
 
