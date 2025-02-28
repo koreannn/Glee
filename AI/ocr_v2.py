@@ -1,4 +1,10 @@
 import os
+import sys
+
+# 프로젝트 루트 디렉토리를 파이썬 경로에 추가
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
 from pathlib import Path
 
 import requests
@@ -15,6 +21,8 @@ from fastapi import UploadFile
 from loguru import logger
 
 from app.core.settings import settings
+from utils.deduplicate_sentence import deduplicate_sentences
+from utils.get_headers_payloads import get_headers_payloads
 
 
 def load_config(file_path):
@@ -24,26 +32,6 @@ def load_config(file_path):
 
 
 load_dotenv("../.env")  # .env 파일 로드
-
-
-# 중복되는 문장 제거..
-def deduplicate_sentences(text):
-    text = text.strip()
-
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    dedup_lines = []
-    for line in lines:
-        if not dedup_lines or dedup_lines[-1] != line:
-            dedup_lines.append(line)
-    new_text = "\n".join(dedup_lines)
-
-    if len(new_text) > 0:
-        lines = new_text.splitlines()
-        half = len(lines) // 2
-        if len(lines) % 2 == 0 and lines[:half] == lines[half:]:
-            return "\n".join(lines[:half]).strip()
-
-    return new_text
 
 
 # -------------------------------------------------------------------
@@ -118,37 +106,16 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
 # 2) 상황 뱉어내는 함수
 def CLOVA_AI_Situation_Summary(conversation: str) -> str:
     # (2) .env에서 불러오기
+    
     URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001"
-    BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
-    REQUEST_ID = os.getenv("CLOVA_REQ_ID_REPLY_SUMMARY")
-
-    if not BEARER_TOKEN or not REQUEST_ID:
-        BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
-        REQUEST_ID = settings.CLOVA_REQ_ID_REPLY_SUMMARY
+    
 
     BASE_DIR = Path(__file__).resolve().parent
 
     # config 파일의 절대 경로 설정
     config_path = BASE_DIR / "config" / "config_Situation_Summary.yaml"
-    config = load_config(config_path)
-
-    headers = {
-        "Authorization": f"Bearer {BEARER_TOKEN}",
-        "X-NCP-CLOVASTUDIO-REQUEST-ID": REQUEST_ID,
-        "Content-Type": "application/json",
-        "Accept": "text/event-stream",
-    }
-    payload = {
-        "messages": [{"role": "system", "content": config["SYSTEM_PROMPT"]}, {"role": "user", "content": conversation}],
-        "topP": config["HYPER_PARAM"]["topP"],
-        "topK": config["HYPER_PARAM"]["topK"],
-        "maxTokens": config["HYPER_PARAM"]["maxTokens"],
-        "temperature": config["HYPER_PARAM"]["temperature"],
-        "repeatPenalty": config["HYPER_PARAM"]["repeatPenalty"],
-        "stopBefore": config["HYPER_PARAM"]["stopBefore"],
-        "includeAiFilters": config["HYPER_PARAM"]["includeAiFilters"],
-        "seed": config["HYPER_PARAM"]["seed"],
-    }
+    headers, payload = get_headers_payloads(str(config_path), "아 배고프다")
+    
     response = requests.post(URL, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
@@ -165,7 +132,8 @@ def CLOVA_AI_Situation_Summary(conversation: str) -> str:
         logger.info(f"상황 요약: {result_text}")
         return result_text
     else:
-        return f"Error: {response.status_code} - {response.text}"
+        logger.error(f"Error: {response.status_code} - {response.text}")
+        return ""
 
 
 # -------------------------------------------------------------------
@@ -306,16 +274,7 @@ def CLOVA_AI_New_Reply_Suggestions(
     """
     config = load_config("./config/config_New_Reply_Suggestions.yaml")
 
-    if use_rag:
-        # RAG 서비스를 통해 관련 문서 검색
-        rag_service = RAGService()
-        search_query = f"{purpose} 작성법 예시"
-        relevant_texts = rag_service.get_relevant_texts(search_query)
-
-        # 관련 문서가 있다면 프롬프트에 추가
-        if relevant_texts:
-            reference_text = "\n\n참고 자료:\n" + "\n".join(relevant_texts)
-            detailed_description = detailed_description + reference_text
+    
 
     # 기존 CLOVA AI 로직 사용
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
@@ -495,9 +454,7 @@ def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpo
 
 # -------------------------------------------------------------------
 # [5] 상황, 말투, 용도, 상세 설명을 기반으로 글 제안을 생성하는 함수
-def New_Reply_Suggestions_Detailed(
-    situation: str, accent: str, purpose: str, detailed_description: str
-) -> list[str, str, str]:
+def New_Reply_Suggestions_Detailed(situation: str, accent: str, purpose: str, detailed_description: str) -> list[str, str, str]:
 
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
     return suggestions

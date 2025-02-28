@@ -9,6 +9,12 @@ from loguru import logger
 from services.videosearch_service import VideoSearchService
 
 from ocr_v2 import (
+    CLOVA_AI_Situation_Summary,
+    CLOVA_AI_Title_Suggestions,
+    CLOVA_AI_Reply_Suggestions,
+    CLOVA_AI_New_Reply_Suggestions,
+    CLOVA_AI_Style_Analysis,
+    
     analyze_situation,
     analyze_situation_accent_purpose,
     
@@ -18,11 +24,24 @@ from ocr_v2 import (
 
 
 def main():
-    # test1: 이미지 -> 상황파악
-    analyze_situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+    CLOVA_AI_Situation_Summary("아, 배고프다.")
+    # # test1: 이미지 -> 상황파악
+    # image_files = []
+    # test_images = ["./AI/OCR_Test1.png", "./AI/OCR_Test2.png", "./AI/OCR_Test3.png", "./AI/OCR_Test4.png"]
+    
+    # for image_path in test_images:
+    #     try:
+    #         with open(image_path, 'rb') as f:
+    #             file_content = f.read()
+    #             image_files.append((image_path, file_content))
+    #     except Exception as e:
+    #         logger.error(f"파일 읽기 오류({image_path}): {e}")
+    #         continue
+    
+    # analyze_situation(image_files)
 
     # # test2: 이미지 -> 상황파악 + 말투 + 용도
-    # Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+    # Situation_Accent_Purpose(["./AI/OCR_Test1.png","./AI/OCR_Test2.png","./AI/OCR_Test3.png","./AI/OCR_Test4.png"])
 
     # # test3: 이미지 -> 답변 추천
     # print(Reply_Suggestions(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"]))
