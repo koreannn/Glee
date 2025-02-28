@@ -23,24 +23,24 @@ def load_config(file_path):
 
 load_dotenv("../.env")  # .env 파일 로드
 
+## 02.28 | 중복제거 함수 수정 및 글 제안 함수에 제목 함수 불러오는 거 추가해놨습니다. + system.prompt 수정
 
-# 중복되는 문장 제거..
+# 중복 제거 함수 수정
 def deduplicate_sentences(text):
     text = text.strip()
-
+    
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     dedup_lines = []
     for line in lines:
         if not dedup_lines or dedup_lines[-1] != line:
             dedup_lines.append(line)
     new_text = "\n".join(dedup_lines)
-
+    
     if len(new_text) > 0:
-        lines = new_text.splitlines()
-        half = len(lines) // 2
-        if len(lines) % 2 == 0 and lines[:half] == lines[half:]:
-            return "\n".join(lines[:half]).strip()
-
+        half = len(new_text) // 2
+        if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
+            return new_text[:half].strip()
+    
     return new_text
 
 
@@ -459,14 +459,22 @@ def analyze_situation_accent_purpose(image_files: list[tuple[str, bytes]]) -> tu
 # [3] [1]의 상황을 기반으로 글 제안을 생성하는 함수
 def generate_suggestions_situation(situation: str) -> list[str]:
     suggestions = CLOVA_AI_Reply_Suggestions(situation)
-    return suggestions
+
+    # 제목 추가(02.28) 
+    title = CLOVA_AI_Title_Suggestions(suggestions)
+    
+    return suggestions, title
 
 
 # -------------------------------------------------------------------
 # [4] [2]의 상황, 말투, 용도를 기반으로 글 제안을 생성하는 함수
 def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpose: str) -> list[str]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose)
-    return suggestions
+
+    # 제목 추가(02.28) 
+    title = CLOVA_AI_Title_Suggestions(suggestions)
+    
+    return suggestions, title
 
 
 # -------------------------------------------------------------------
@@ -475,4 +483,8 @@ def generate_reply_suggestions_detail(
     situation: str, accent: str, purpose: str, detailed_description: str
 ) -> list[str]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
-    return suggestions
+
+    # 제목 추가(02.28) 
+    title = CLOVA_AI_Title_Suggestions(suggestions)
+    
+    return suggestions, title
