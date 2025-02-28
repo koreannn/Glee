@@ -1,21 +1,13 @@
-from email.policy import default
-
 from app.auth.auth_service import AuthService
 from app.core.settings import settings
 import pytest
 from unittest.mock import patch
 
 
-import pytest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock
 from urllib.parse import urlencode
 
-import httpx
 from pydantic import HttpUrl
-
-from app.auth.auth_service import AuthService
-from app.user.user_dto import UserData
-from app.core.settings import settings
 
 
 @pytest.mark.asyncio

@@ -8,4 +8,3 @@ class AuthRequest(BaseModel):
 
 class KakaoRefreshTokenAuthRequest(BaseModel):
     refresh_token: str
-

@@ -5,12 +5,15 @@ import requests
 import yaml
 import os
 
+
 def load_config(file_path):
     with open(file_path, "r") as file:
         config = yaml.safe_load(file)
     return config
 
+
 load_dotenv("../.env")
+
 
 class CompletionExecutor:
     def __init__(self, host, api_key, api_key_primary_val, request_id):

@@ -1,8 +1,4 @@
-from typing import Any
-
-import jwt
-from fastapi import APIRouter, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException
 from app.auth.auth_service import AuthService
 
 from app.user.user_service import UserService
@@ -10,13 +6,13 @@ from app.utils.jwt_handler import JwtHandler
 
 router = APIRouter(prefix="/kakao", tags=["Kakao OAuth"])
 
+
 @router.get("/authorize", response_model=KakaoAuthUrlResponse)
 async def get_kakao_code() -> KakaoAuthUrlResponse:
     """카카오 로그인 URL 제공"""
     scope = "profile_nickname, profile_image"
     auth_url = AuthService.getcode_auth_url(scope)
     return KakaoAuthUrlResponse(auth_url=auth_url)
-
 
 
 @router.get("/callback")
@@ -40,11 +36,7 @@ async def kakao_callback(code: str):
         {"kakao_id": user_data.kakao_id, "nickname": user_data.nickname}
     )  # 길게 설정 가능
 
-    return {
-        "access_token": access_jwt,
-        "refresh_token": refresh_jwt,
-        "token_type": "bearer"
-    }
+    return {"access_token": access_jwt, "refresh_token": refresh_jwt, "token_type": "bearer"}
 
 
 @router.post("/refresh_token", response_model=RefreshTokenResponse)
