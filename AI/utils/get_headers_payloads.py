@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import yaml
+import random  # random 모듈 추가
 from typing import Optional, Union, Dict, Any
 
 # 프로젝트 루트 디렉토리를 파이썬 경로에 추가
@@ -13,12 +14,14 @@ from app.core.settings import settings
 
 load_dotenv()
 
+
 def load_config(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     return config
 
-def get_headers_payloads(config_path: Union[str, Dict[str, Any]], conversation: Optional[str] = None):
+def get_headers_payloads(config_path: Union[str, Dict[str, Any]], conversation: Optional[str] = None, random_seed: Optional[bool] = False):
+    
     # config_path가 문자열이면 파일에서 로드, 딕셔너리면 그대로 사용
     if isinstance(config_path, str):
         config = load_config(config_path)
@@ -44,6 +47,9 @@ def get_headers_payloads(config_path: Union[str, Dict[str, Any]], conversation: 
     if conversation is not None:
         messages.append({"role": "user", "content": conversation})
     
+    # random_seed가 True일 경우 랜덤 시드 생성
+    seed = random.randint(0, 10000) if random_seed else config["HYPER_PARAM"]["seed"]
+    
     payload = {
         # "messages": [{"role": "system", "content": config["SYSTEM_PROMPT"]}, {"role": "user", "content": conversation}],
         "messages": messages,
@@ -54,7 +60,7 @@ def get_headers_payloads(config_path: Union[str, Dict[str, Any]], conversation: 
         "repeatPenalty": config["HYPER_PARAM"]["repeatPenalty"],
         "stopBefore": config["HYPER_PARAM"]["stopBefore"],
         "includeAiFilters": config["HYPER_PARAM"]["includeAiFilters"],
-        "seed": config["HYPER_PARAM"]["seed"],
+        "seed": seed,  # 랜덤 또는 설정된 시드 값 사용
     }
     
     return headers, payload

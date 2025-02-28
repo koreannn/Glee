@@ -15,7 +15,6 @@ import random
 from dotenv import load_dotenv
 import yaml
 
-from fastapi import UploadFile
 
 
 from loguru import logger
@@ -23,6 +22,7 @@ from loguru import logger
 from app.core.settings import settings
 from utils.deduplicate_sentence import deduplicate_sentences
 from utils.get_headers_payloads import get_headers_payloads
+from services.title_suggestion import CLOVA_AI_Title_Suggestions
 
 
 def load_config(file_path):
@@ -153,31 +153,14 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
 
     # config 파일의 절대 경로 설정
     config_path = BASE_DIR / "config" / "config_Title_Suggestion.yaml"
+    headers, payload = get_headers_payloads(str(config_path), input_text)
     config = load_config(config_path)
 
     suggestions = []
 
     for _ in range(3):  # 새로 고침 하면 새로운 생성을 만들어내도록 수정
-        headers = {
-            "Authorization": f"Bearer {BEARER_TOKEN}",
-            "X-NCP-CLOVASTUDIO-REQUEST-ID": REQUEST_ID,
-            "Content-Type": "application/json",
-            "Accept": "text/event-stream",
-        }
-        payload = {
-            "messages": [
-                {"role": "system", "content": config["SYSTEM_PROMPT"]},
-                {"role": "user", "content": input_text},
-            ],
-            "topP": config["HYPER_PARAM"]["topP"],
-            "topK": config["HYPER_PARAM"]["topK"],
-            "maxTokens": config["HYPER_PARAM"]["maxTokens"],
-            "temperature": config["HYPER_PARAM"]["temperature"],
-            "repeatPenalty": config["HYPER_PARAM"]["repeatPenalty"],
-            "stopBefore": config["HYPER_PARAM"]["stopBefore"],
-            "includeAiFilters": config["HYPER_PARAM"]["includeAiFilters"],
-            "seed": config["HYPER_PARAM"]["seed"],
-        }
+        headers, payload = get_headers_payloads(str(config_path), input_text)
+        
         response = requests.post(BASE_URL, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             title_text = ""
@@ -218,27 +201,8 @@ def CLOVA_AI_Reply_Suggestions(situation_text: str) -> list[str]:
     suggestions = []
 
     for _ in range(3):
-        seed = random.randint(0, 10000)
-        headers = {
-            "Authorization": f"Bearer {BEARER_TOKEN}",
-            "X-NCP-CLOVASTUDIO-REQUEST-ID": REQUEST_ID,
-            "Content-Type": "application/json",
-            "Accept": "text/event-stream",
-        }
-        payload = {
-            "messages": [
-                {"role": "system", "content": config["SYSTEM_PROMPT"]},
-                {"role": "user", "content": situation_text},
-            ],
-            "topP": config["HYPER_PARAM"]["topP"],
-            "topK": config["HYPER_PARAM"]["topK"],
-            "maxTokens": config["HYPER_PARAM"]["maxTokens"],
-            "temperature": config["HYPER_PARAM"]["temperature"],
-            "repeatPenalty": config["HYPER_PARAM"]["repeatPenalty"],
-            "stopBefore": config["HYPER_PARAM"]["stopBefore"],
-            "includeAiFilters": config["HYPER_PARAM"]["includeAiFilters"],
-            "seed": seed,
-        }
+        headers, payload = get_headers_payloads(str(config_path), situation_text, random_seed=True)
+        
         response = requests.post(BASE_URL, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             reply_text = ""
@@ -266,16 +230,8 @@ def CLOVA_AI_New_Reply_Suggestions(
     situation_text: str,
     accent: str = None,
     purpose: str = None,
-    detailed_description: str = "없음",
-    use_rag: bool = True,
+    detailed_description: str = "없음"
 ) -> list[str]:
-    """
-    RAG 기능이 추가된 답변 생성 함수
-    """
-    config = load_config("./config/config_New_Reply_Suggestions.yaml")
-
-    
-
     # 기존 CLOVA AI 로직 사용
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
