@@ -8,19 +8,19 @@ from loguru import logger
 
 from services.videosearch_service import VideoSearchService
 
-# from ocr_v2 import (
-#     analyze_situation_accent_purpose,
-#     generate_reply_suggestions_detail,
-#     analyze_situation,
-# )
+from ocr_v2 import (
+    analyze_situation_accent_purpose,
+    generate_reply_suggestions_detail,
+    analyze_situation,
+)
 
 
 
 def main():
     # test1: 이미지 -> 상황파악
-    # Situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
+    Situation(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
 
-    # test2: 이미지 -> 상황파악 + 말투 + 용도
+    # # test2: 이미지 -> 상황파악 + 말투 + 용도
     # Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
 
     # # test3: 이미지 -> 답변 추천
