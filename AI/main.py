@@ -7,7 +7,14 @@ def get_user_choice():
 
 
 from loguru import logger
+
 from videosearch_service import VideoSearchService
+
+from ocr_v2 import (
+    analyze_situation_accent_purpose,
+    generate_reply_suggestions_detail,
+    analyze_situation,
+)
 
 
 # test1: 이미지 -> 상황파악
@@ -22,6 +29,7 @@ from videosearch_service import VideoSearchService
 # # test4: 상황+말투+용도 -> 새로운 답변 추천
 # situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
 # print(New_Reply_Suggestions(situation, accent, purpose))
+
 
 # # test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
 # situation, accent, purpose = Situation_Accent_Purpose(
@@ -61,3 +69,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+# test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
+
+

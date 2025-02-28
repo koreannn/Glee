@@ -24,3 +24,10 @@ class RefreshTokenResponse(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+
+
+class CurrentUserResponse(BaseModel):
+    id: int
+    nickname: str
+    profile_image: str
+    thumbnail_image: str

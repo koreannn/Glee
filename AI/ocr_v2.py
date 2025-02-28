@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 import requests
 import uuid
 import time
@@ -6,6 +8,7 @@ import json
 import random
 from dotenv import load_dotenv
 import yaml
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -14,7 +17,12 @@ from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import HuggingFaceHub
 
+from fastapi import UploadFile
+
+
 from loguru import logger
+
+from app.core.settings import settings
 
 
 def load_config(file_path):
@@ -38,9 +46,10 @@ def deduplicate_sentences(text):
     new_text = "\n".join(dedup_lines)
 
     if len(new_text) > 0:
-        half = len(new_text) // 2
-        if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
-            return new_text[:half].strip()
+        lines = new_text.splitlines()
+        half = len(lines) // 2
+        if len(lines) % 2 == 0 and lines[:half] == lines[half:]:
+            return "\n".join(lines[:half]).strip()
 
     return new_text
 
@@ -48,7 +57,7 @@ def deduplicate_sentences(text):
 # -------------------------------------------------------------------
 # 1) CLOVA OCR 호출 함수
 # def CLOVA_OCR(image_files: list[UploadFile]) -> str:
-def CLOVA_OCR(image_files: list) -> str:
+def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
     """
     여러 이미지 파일 경로 리스트를 받아, 각 파일에 대해 OCR 요청을 개별적으로 보내고,
     그 결과를 합쳐서 반환합니다.
@@ -57,8 +66,12 @@ def CLOVA_OCR(image_files: list) -> str:
     SECRET_KEY = os.getenv("CLOVA_OCR_SECRET_KEY")
 
     if not URL or not SECRET_KEY:
-        logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
-        return ""
+        URL = settings.CLOVA_OCR_URL
+        SECRET_KEY = settings.CLOVA_OCR_SECRET_KEY
+
+        if not URL or not SECRET_KEY:
+            logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
+            return ""
 
     headers = {"X-OCR-SECRET": SECRET_KEY}
     total_extracted_text = ""
@@ -66,8 +79,8 @@ def CLOVA_OCR(image_files: list) -> str:
     # 입력된 파일 수를 로그에 기록
     logger.info(f"총 {len(image_files)}개의 파일을 처리합니다.")
 
-    for file_path in image_files:
-        file_ext = file_path.split(".")[-1].lower()
+    for file_name, file_data in image_files:
+        file_ext = file_name.split(".")[-1].lower()
 
         # 단일 이미지 객체만 포함하도록 JSON 생성
         request_json = {
@@ -80,11 +93,11 @@ def CLOVA_OCR(image_files: list) -> str:
         payload = {"message": json.dumps(request_json).encode("UTF-8")}
 
         try:
-            with open(file_path, "rb") as f:
-                files = [("file", (os.path.basename(file_path), f, f"image/{file_ext}"))]
-                response = requests.post(URL, headers=headers, data=payload, files=files)
+            # with open(file_path, "rb") as f:
+            files_data = [("file", (file_name, file_data, f"image/{file_ext}"))]
+            response = requests.post(URL, headers=headers, data=payload, files=files_data, json=request_json)
         except Exception as e:
-            logger.error(f"파일 열기 오류({file_path}): {e}")
+            logger.error(f"파일 업로드 오류({file_name}): {e}")
             continue
 
         if response.status_code == 200:
@@ -101,10 +114,10 @@ def CLOVA_OCR(image_files: list) -> str:
                 extracted_text += field["inferText"] + " "
 
             # 각 파일의 OCR 결과를 로그에 출력
-            logger.info(f"[{os.path.basename(file_path)}] 추출된 텍스트: {extracted_text.strip()}")
+            logger.info(f"[{os.path.basename(file_name)}] 추출된 텍스트: {extracted_text.strip()}")
             total_extracted_text += extracted_text.strip() + "\n"
         else:
-            logger.error(f"Error: {response.status_code} - {response.text} for file {file_path}")
+            logger.error(f"Error: {response.status_code} - {response.text} for file {file_name}")
 
     return total_extracted_text.strip()
 
@@ -117,7 +130,15 @@ def CLOVA_AI_Situation_Summary(conversation: str) -> str:
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
     REQUEST_ID = os.getenv("CLOVA_REQ_ID_REPLY_SUMMARY")
 
-    config = load_config("./config/config_Situation_Summary.yaml")
+    if not BEARER_TOKEN or not REQUEST_ID:
+        BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
+        REQUEST_ID = settings.CLOVA_REQ_ID_REPLY_SUMMARY
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # config 파일의 절대 경로 설정
+    config_path = BASE_DIR / "config" / "config_Situation_Summary.yaml"
+    config = load_config(config_path)
 
     headers = {
         "Authorization": f"Bearer {BEARER_TOKEN}",
@@ -158,11 +179,21 @@ def CLOVA_AI_Situation_Summary(conversation: str) -> str:
 # -------------------------------------------------------------------
 # 3) 제목 지어주는 AI
 def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
-    config = load_config("./config/config_Title_Suggestion.yaml")
+
     # (2) .env에서 불러오기
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
     REQUEST_ID = os.getenv("CLOVA_REQ_ID_TITLE")
+
+    if not BEARER_TOKEN or not REQUEST_ID:
+        BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
+        REQUEST_ID = settings.CLOVA_REQ_ID_REPLY_SUMMARY
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # config 파일의 절대 경로 설정
+    config_path = BASE_DIR / "config" / "config_Title_Suggestion.yaml"
+    config = load_config(config_path)
 
     suggestions = []
 
@@ -208,12 +239,21 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
 
 # -------------------------------------------------------------------
 # 4) 사진에 대한 답장 AI
-def CLOVA_AI_Reply_Suggestions(situation_text: str) -> str:
-    config = load_config("./config/config_Reply_Suggestions.yaml")
+def CLOVA_AI_Reply_Suggestions(situation_text: str) -> list[str]:
 
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
     REQUEST_ID = os.getenv("CLOVA_REQ_ID_OLD_REPLY")
+
+    if not BEARER_TOKEN or not REQUEST_ID:
+        BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
+        REQUEST_ID = settings.CLOVA_REQ_ID_REPLY_SUMMARY
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # config 파일의 절대 경로 설정
+    config_path = BASE_DIR / "config" / "config_Reply_Suggestions.yaml"
+    config = load_config(config_path)
 
     suggestions = []
 
@@ -290,6 +330,17 @@ def CLOVA_AI_New_Reply_Suggestions(
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
     REQUEST_ID = os.getenv("CLOVA_REQ_ID_NEW_REPLY")
 
+    if not BEARER_TOKEN or not REQUEST_ID:
+        BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
+        REQUEST_ID = settings.CLOVA_REQ_ID_REPLY_SUMMARY
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # config 파일의 절대 경로 설정
+    config_path = BASE_DIR / "config" / "config_New_Reply_Suggestions.yaml"
+    config = load_config(config_path)
+
+
     # 상황, 말투, 용도 정보를 포함한 입력 텍스트 생성
     input_text = f"상황: {situation_text}"
     if accent and purpose:
@@ -352,7 +403,15 @@ def CLOVA_AI_Style_Analysis(conversation: str) -> tuple[str, str]:
     BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
     REQUEST_ID = os.getenv("CLOVA_REQ_ID_STYLE")
 
-    config = load_config("./config/config_Style_Analysis.yaml")
+    if not BEARER_TOKEN or not REQUEST_ID:
+        BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
+        REQUEST_ID = settings.CLOVA_REQ_ID_REPLY_SUMMARY
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # config 파일의 절대 경로 설정
+    config_path = BASE_DIR / "config" / "config_Style_Analysis.yaml"
+    config = load_config(config_path)
 
     headers = {
         "Authorization": f"Bearer {BEARER_TOKEN}",
@@ -413,16 +472,16 @@ def CLOVA_AI_Style_Analysis(conversation: str) -> tuple[str, str]:
 
 # -------------------------------------------------------------------
 # [1] 이미지파일 (최대 4개) 입력 -> 상황을 뱉어내는 함수
-def Situation(image_list: list) -> str:
-    image2text = CLOVA_OCR(image_list)
+def analyze_situation(image_files: list[tuple[str, bytes]]) -> str:
+    image2text = CLOVA_OCR(image_files)
     situation_string = CLOVA_AI_Situation_Summary(image2text)
     return situation_string
 
 
 # -------------------------------------------------------------------
 # [2] 이미지파일 (최대 4개) 입력 -> 상황, 말투, 용도를 뱉어내는 함수
-def Situation_Accent_Purpose(image_list: list) -> tuple[str, str, str]:
-    image2text = CLOVA_OCR(image_list)
+def analyze_situation_accent_purpose(image_files: list[tuple[str, bytes]]) -> tuple[str, str, str]:
+    image2text = CLOVA_OCR(image_files)
     situation = CLOVA_AI_Situation_Summary(image2text)
     accent, purpose = CLOVA_AI_Style_Analysis(image2text)
     return situation, accent, purpose
@@ -430,15 +489,14 @@ def Situation_Accent_Purpose(image_list: list) -> tuple[str, str, str]:
 
 # -------------------------------------------------------------------
 # [3] [1]의 상황을 기반으로 글 제안을 생성하는 함수
-def Reply_Suggestions(image_list: list) -> list[str, str, str]:
-    situation = Situation(image_list)
+def generate_suggestions_situation(situation: str) -> list[str]:
     suggestions = CLOVA_AI_Reply_Suggestions(situation)
     return suggestions
 
 
 # -------------------------------------------------------------------
 # [4] [2]의 상황, 말투, 용도를 기반으로 글 제안을 생성하는 함수
-def New_Reply_Suggestions(situation: str, accent: str, purpose: str) -> list[str, str, str]:
+def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpose: str) -> list[str]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose)
     return suggestions
 
@@ -448,6 +506,7 @@ def New_Reply_Suggestions(situation: str, accent: str, purpose: str) -> list[str
 def New_Reply_Suggestions_Detailed(
     situation: str, accent: str, purpose: str, detailed_description: str
 ) -> list[str, str, str]:
+
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
     return suggestions
 
