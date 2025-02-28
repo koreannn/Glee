@@ -38,9 +38,16 @@ def clova_ai_glee(prompt):
         "Content-Type": "application/json",
         "Accept": "text/event-stream",
     }
-    system_msg = (
-        "사용자가 선택하거나 입력한 내용을 보고 글을 제안해줘. 이때 출력은 오로지 너가 제안하는 문장만 출력해줘"
-    )
+    system_msg = '''
+        사용자가 선택하거나 입력한 내용을 보고 글을 제안해주세요. 
+        
+        이때 출력은 오로지 당신이 제안하는 문장만 출력해주세요.
+        예를 들면, 사용자가 돈을 빌려달라는 친구의 부탁을 정중하게 거절하고싶다고 했을 떄, 당신의 답변은 다음과 같은 형태입니다.
+        "나도 요즘 형편이 어려워서 못빌려줄거같아. 미안."
+        "아니. 요즘 나도 돈이 없어서 못빌려줄거같아. 미안해."
+        
+        답변의 형태를 위와 같은 형태를 반드시 지켜서 답변만 제안해주세요.
+        '''
     payload = {
         "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}],
         "topP": 0.8,
@@ -78,7 +85,11 @@ def clova_ai_title_suggestions(input_text):
     request_id = os.getenv("CLOVA_REQ_ID_TITLE")
 
     suggestions = []
-    system_msg = "사용자가 입력한 내용에 맞는 제목을 작성해줘. 출력은 문장만 출력해줘"
+    system_msg = '''
+    사용자가 입력한 내용에 맞는 제목을 작성해줘. 출력은 문장만 출력해줘
+    
+    
+    '''
 
     for _ in range(3):
         headers = {
