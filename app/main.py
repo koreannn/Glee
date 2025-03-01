@@ -7,6 +7,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth.auth_router import router as auth_router
 from app.suggester.suggester_router import router as analyze_router
+from app.history.history_router import router as history_router
 from app.core.settings import settings
 from app.utils import mongo
 
@@ -23,6 +24,7 @@ app = FastAPI(lifespan=lifespan)
 # ✅ FastAPI 인스턴스 생성 후 라우터 추가
 app.include_router(auth_router)
 app.include_router(analyze_router)
+app.include_router(history_router)
 
 # ✅ CORS 미들웨어 추가
 app.add_middleware(

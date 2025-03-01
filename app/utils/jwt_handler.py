@@ -6,7 +6,7 @@ from fastapi import HTTPException, Depends
 from app.core.settings import settings
 from app.user.user_collection import UserCollection
 from app.user.user_document import UserDocument
-from app.utils.api_header_validator import verify_jwt
+from app.utils.api_header_validator import verify_jwt, optional_verify_jwt
 
 
 class JwtHandler:
@@ -40,12 +40,31 @@ class JwtHandler:
     async def get_current_user(cls, payload: dict[Any, Any] = Depends(verify_jwt)) -> UserDocument:
         """JWT 토큰을 이용하여 현재 로그인된 사용자 정보 반환"""
         kakao_id = payload.get("id")
-
         if not kakao_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         user_document = await UserCollection.get_by_kakao_id(kakao_id)
 
         if not user_document:
             raise HTTPException(status_code=404, detail="User not found")
-
         return user_document
+
+    @classmethod
+    async def get_optional_current_user(
+        cls, payload: dict[Any, Any] | None = Depends(optional_verify_jwt)
+    ) -> UserDocument | None:
+        """JWT 토큰을 이용하여 현재 로그인된 사용자 정보 반환"""
+
+        if payload is None:
+            return None
+
+        try:
+            kakao_id = payload.get("id")
+            if not kakao_id:
+                raise HTTPException(status_code=401, detail="Invalid token payload")
+            user_document = await UserCollection.get_by_kakao_id(kakao_id)
+
+            if not user_document:
+                raise HTTPException(status_code=404, detail="User not found")
+            return user_document
+        except:
+            return None

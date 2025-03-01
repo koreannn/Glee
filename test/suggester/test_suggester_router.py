@@ -7,6 +7,22 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.core.enums import PurposeType, SuggestionTagType
 from app.suggester.suggester_document import SuggesterDocument
+from app.suggester.suggester_request import GenerateSuggestionRequest
+from app.user.user_document import UserDocument
+
+
+@pytest.mark.asyncio
+async def test_generate_suggestion() -> None:
+    data = {
+        "situation": "카카오톡으로 사과하려는 상황이야",
+        "tone": "친절하게",
+        "usage": "사과",
+        "detail": "앞으로도 친하게 지내고 싶은 친구야"
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post("/suggester/generate", json=data)
+
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
@@ -173,7 +189,7 @@ async def test_analyze_images_to_similar_vibe(test_image_path: Path, auth_header
 
 
 @pytest.mark.asyncio
-async def test_update_suggestion(auth_header: dict[str, str]) -> None:
+async def test_update_suggestion(test_user: UserDocument, auth_header: dict[str, str]) -> None:
     suggestion_id = str(ObjectId())
     suggestion = "Origin suggestion"
     update_suggestion = "Updated suggestion"
@@ -198,7 +214,7 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
             suggestion=update_suggestion,
             updated_at="2024-02-25T12:00:00",
             created_at="2024-02-25T12:00:00",
-            user_id=ObjectId("67bd950e6a524a8132db160d"),
+            user_id=test_user.id,
         )
         mock_get_suggestion.return_value = AsyncMock(
             id=ObjectId(suggestion_id),
@@ -207,7 +223,7 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
             suggestion=suggestion,
             updated_at="2024-02-25T12:00:00",
             created_at="2024-02-25T12:00:00",
-            user_id=ObjectId("67bd950e6a524a8132db160d"),
+            user_id=test_user.id,
         )
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

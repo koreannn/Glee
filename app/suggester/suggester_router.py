@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
 
 from AI.ocr_v2 import analyze_situation, analyze_situation_accent_purpose
+from app.history.history_service import HistoryService
 from app.suggester.suggester_request import (
     GenerateSuggestionRequest,
     SuggestionRequest,
@@ -21,6 +22,7 @@ from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
 from app.user.user_document import UserDocument
 from app.utils.jwt_handler import JwtHandler
+from app.utils.models.suggestion import Suggestion
 
 router = APIRouter(prefix="/suggester", tags=["suggester"])
 logger = logging.getLogger(__name__)
@@ -87,6 +89,7 @@ async def analyze_images(
 )
 async def generate_suggestion(
     request: GenerateSuggestionRequest,
+    user: UserDocument | None = Depends(JwtHandler.get_optional_current_user),  # ✅ JWT 인증된 사용자
 ) -> GenerateSuggestionsResponse:
 
     # TODO AI API 호출해서 올리는거
@@ -95,6 +98,11 @@ async def generate_suggestion(
     )
 
     result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]
+
+    if user:
+        _suggestions = [Suggestion(title=suggestion.title, content=suggestion.content) for suggestion in result]
+        await HistoryService.create_history(user.id, _suggestions)
+
     return GenerateSuggestionsResponse(suggestions=result)
 
 
@@ -171,7 +179,7 @@ async def get_my_suggestions_summary(
         SuggestionResponse(
             id=str(my_suggestion.id),
             title=my_suggestion.title,
-            tags=my_suggestion.tag,
+            tags=[],
             suggestion=my_suggestion.suggestion,
             updated_at=my_suggestion.updated_at,
             created_at=my_suggestion.created_at,
@@ -230,7 +238,6 @@ async def delete_suggestion(
         raise HTTPException(status_code=403, detail="Access denied")
 
     success = await SuggesterService.delete_suggestion(suggestion_id)
-
     if not success:
         raise HTTPException(status_code=500, detail="Failed to delete suggestion")
 
