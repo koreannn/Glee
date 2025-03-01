@@ -143,7 +143,7 @@ async def get_my_suggestions(
     )
 
 
-@router.get("user/summary")
+@router.get("/user/summary")
 async def get_my_suggestions_summary(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> GetMySuggestionsResponse:
