@@ -126,7 +126,7 @@ def CLOVA_AI_Situation_Summary(conversation: str) -> str:
 
     # config 파일의 절대 경로 설정
     config_path = BASE_DIR / "config" / "config_Situation_Summary.yaml"
-    headers, payload = get_headers_payloads(str(config_path), "아 배고프다")
+    headers, payload = get_headers_payloads(str(config_path), conversation) # conversation으로 수정정
 
     response = requests.post(URL, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
