@@ -13,7 +13,7 @@ from app.suggester.suggester_document import SuggesterDocument
 async def test_save_suggestion(auth_header: dict[str, str]) -> None:
     """유저가 생성한 AI 글제안 - 저장"""
 
-    data = {"tags": [SuggestionTagType.APOLOGY.value], "suggestion": "This is a test suggestion"}
+    data = {"title": "Test Title", "tags": [SuggestionTagType.APOLOGY.value], "suggestion": "This is a test suggestion"}
 
     with patch(
         "app.suggester.suggester_service.SuggesterService.create_suggestion", new_callable=AsyncMock
@@ -21,6 +21,7 @@ async def test_save_suggestion(auth_header: dict[str, str]) -> None:
         mock_create_suggestion.return_value = AsyncMock(
             id=str(ObjectId()),
             tag=data["tags"],
+            title=data["title"],
             suggestion=data["suggestion"],
             updated_at="2024-02-25T12:00:00",
             created_at="2024-02-25T12:00:00",
@@ -45,6 +46,7 @@ async def test_get_suggestion(exists_suggestion: SuggesterDocument, auth_header:
             id=exists_suggestion.id,
             user_id=exists_suggestion.user_id,
             tag=exists_suggestion.tag,
+            title=exists_suggestion.title,
             suggestion=exists_suggestion.suggestion,
             updated_at=exists_suggestion.updated_at,
             created_at=exists_suggestion.created_at,
@@ -55,7 +57,8 @@ async def test_get_suggestion(exists_suggestion: SuggesterDocument, auth_header:
 
     assert response.status_code == 200
     assert response.json()["id"] == str(exists_suggestion.id)
-    assert response.json()["suggestion"] == "Test suggestion"
+    assert response.json()["title"] == exists_suggestion.title
+    assert response.json()["suggestion"] == exists_suggestion.suggestion
 
 
 @pytest.mark.asyncio
@@ -68,6 +71,7 @@ async def test_get_my_suggestions(auth_header: dict[str, str]) -> None:
             AsyncMock(
                 id=str(ObjectId()),
                 tag=[SuggestionTagType.FAVORITES],
+                title="First test",
                 suggestion="First test",
                 updated_at="2024-02-25T12:00:00",
                 created_at="2024-02-25T12:00:00",
@@ -75,6 +79,7 @@ async def test_get_my_suggestions(auth_header: dict[str, str]) -> None:
             AsyncMock(
                 id=str(ObjectId()),
                 tag=[SuggestionTagType.SCHOOL],
+                title="Second test",
                 suggestion="Second test",
                 updated_at="2024-02-25T12:00:00",
                 created_at="2024-02-25T12:00:00",
@@ -101,6 +106,7 @@ async def test_delete_suggestion(exists_suggestion: SuggesterDocument, auth_head
     ):
         mock_get_suggestion.return_value = AsyncMock(
             id=exists_suggestion.id,
+            title=exists_suggestion.title,
             tag=exists_suggestion.tag,
             user_id=exists_suggestion.user_id,
             suggestion=exists_suggestion.suggestion,
@@ -171,10 +177,11 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
     suggestion_id = str(ObjectId())
     suggestion = "Origin suggestion"
     update_suggestion = "Updated suggestion"
+    title = "Test title"
     tags = [SuggestionTagType.FAVORITES]
     tags_str = [SuggestionTagType.FAVORITES.value]
 
-    data = {"tags": tags_str, "suggestion": update_suggestion}
+    data = {"tags": tags_str, "suggestion": update_suggestion, "title":title}
     with (
         patch(
             "app.suggester.suggester_service.SuggesterService.update_suggestion", new_callable=AsyncMock
@@ -187,6 +194,7 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
         mock_update_suggestion.return_value = AsyncMock(
             id=ObjectId(suggestion_id),
             tag=tags,
+            title=title,
             suggestion=update_suggestion,
             updated_at="2024-02-25T12:00:00",
             created_at="2024-02-25T12:00:00",
@@ -195,6 +203,7 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
         mock_get_suggestion.return_value = AsyncMock(
             id=ObjectId(suggestion_id),
             tag=tags,
+            title=title,
             suggestion=suggestion,
             updated_at="2024-02-25T12:00:00",
             created_at="2024-02-25T12:00:00",

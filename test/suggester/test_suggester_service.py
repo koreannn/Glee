@@ -12,8 +12,9 @@ async def test_create_suggestion() -> None:
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "Test AI generated suggestion"
+    title = "Test title"
 
-    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
+    document = await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
 
     assert document.user_id == user_id
     assert document.suggestion == suggestion
@@ -26,8 +27,8 @@ async def test_get_suggestion_by_id() -> None:
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "Fetching from DB"
-
-    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
+    title = "Test title"
+    document = await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
 
     retrieved_document = await SuggesterService.get_suggestion_by_id(str(document.id))
 
@@ -42,8 +43,8 @@ async def test_delete_suggestion() -> None:
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "This will be deleted"
-
-    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
+    title = "Test title"
+    document = await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
     success = await SuggesterService.delete_suggestion(str(document.id))
     assert success is True
 
@@ -59,8 +60,8 @@ async def test_update_suggestion_tags() -> None:
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     update_tag = [SuggestionTagType.SCHOOL, SuggestionTagType.COMFORT]
     suggestion = "update suggestion"
-
-    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
+    title = "Test title"
+    document = await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
 
     updated_document = await SuggesterService.update_suggestion_tags(str(document.id), update_tag)
 
@@ -75,9 +76,10 @@ async def test_update_suggestion() -> None:
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "update suggestion"
     update_suggestion = "update suggestion"
-
-    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
-    updated_document = await SuggesterService.update_suggestion(str(document.id), update_suggestion, tag)
+    title = "Test title"
+    document = await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
+    updated_document = await SuggesterService.update_suggestion(str(document.id), title, update_suggestion, tag)
 
     assert updated_document.id == document.id
+    assert updated_document.title == title
     assert updated_document.suggestion == update_suggestion

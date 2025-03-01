@@ -23,6 +23,7 @@ class SuggesterCollection:
         return SuggesterDocument(
             user_id=suggester_dto.user_id,
             tag=tags,
+            title=suggester_dto.title,
             suggestion=suggester_dto.suggestion,
             created_at=suggester_dto.created_at,
             updated_at=suggester_dto.updated_at,
@@ -41,17 +42,20 @@ class SuggesterCollection:
         return await cursor.to_list(length=100)
 
     @classmethod
-    async def update(cls, suggestion_id: str, suggestion: str, tags: list[SuggestionTagType]) -> SuggesterDocument:
+    async def update(
+        cls, suggestion_id: str, title: str, suggestion: str, tags: list[SuggestionTagType]
+    ) -> SuggesterDocument:
         """추천 데이터 업데이트"""
         tags_str = [tag.value for tag in tags]
 
         result = await cls._collection.find_one_and_update(
             {"_id": ObjectId(suggestion_id)},
-            {"$set": {"tag": tags_str, "suggestion": suggestion, "updated_at": datetime.now()}},
+            {"$set": {"tag": tags_str, "title": title, "suggestion": suggestion, "updated_at": datetime.now()}},
             return_document=ReturnDocument.AFTER,  # 업데이트된 문서를 반환
         )
 
         return SuggesterDocument(
+            title=result["title"],
             user_id=result["user_id"],
             tag=tags,
             suggestion=suggestion,
@@ -80,6 +84,7 @@ class SuggesterCollection:
             raise ValueError("Suggestion not found")
 
         return SuggesterDocument(
+            title=updated_doc["title"],
             user_id=updated_doc["user_id"],
             tag=tags,
             suggestion=updated_doc["suggestion"],

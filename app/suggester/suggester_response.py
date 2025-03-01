@@ -11,12 +11,18 @@ class AnalyzeImagesConversationResponse(BaseModel):
     purpose: PurposeType
 
 
-class GenerateSuggestionResponse(BaseModel):
-    suggestions: list[str]
+class GenerateSuggestion(BaseModel):
+    title: str
+    content: str
+
+
+class GenerateSuggestionsResponse(BaseModel):
+    suggestions: list[GenerateSuggestion]
 
 
 class SuggestionResponse(BaseModel):
     id: str
+    title: str
     tags: list[SuggestionTagType]
     suggestion: str
     updated_at: datetime

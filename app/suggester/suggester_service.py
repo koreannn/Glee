@@ -21,12 +21,15 @@ from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 class SuggesterService:
 
     @staticmethod
-    async def create_suggestion(user_id: ObjectId, tag: list[SuggestionTagType], suggestion: str) -> SuggesterDocument:
+    async def create_suggestion(
+        user_id: ObjectId, title: str, suggestion: str, tag: list[SuggestionTagType]
+    ) -> SuggesterDocument:
         """Suggestion 저장하기"""
 
         tag_str = [tag.value for tag in tag]
         suggestion_dto = SuggesterDTO(
             user_id=user_id,
+            title=title,
             tag=tag_str,
             suggestion=suggestion,
             updated_at=datetime.now(),
@@ -56,23 +59,23 @@ class SuggesterService:
 
     @staticmethod
     async def update_suggestion(
-        suggestion_id: str, suggestion: str, tags: list[SuggestionTagType]
+        suggestion_id: str, title: str, suggestion: str, tags: list[SuggestionTagType]
     ) -> SuggesterDocument:
-        return await SuggesterCollection.update(suggestion_id, suggestion, tags)
+        return await SuggesterCollection.update(suggestion_id, title, suggestion, tags)
 
     @staticmethod
     async def generate_suggestions(
         situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
-    ) -> list[str]:
+    ) -> tuple[list[str], list[str]]:
         if situation and tone and usage and detail:
-            suggestions = generate_reply_suggestions_detail(situation, tone, usage, detail)
+            suggestions, title = generate_reply_suggestions_detail(situation, tone, usage, detail)
         elif situation and tone and usage:
-            suggestions = generate_reply_suggestions_accent_purpose(situation, tone, usage)
+            suggestions, title = generate_reply_suggestions_accent_purpose(situation, tone, usage)
         elif situation:
-            suggestions = generate_suggestions_situation(situation)
+            suggestions, title = generate_suggestions_situation(situation)
         else:
             raise HTTPException(status_code=400, detail="Invalid Generate Suggestion Request")
-        return suggestions
+        return suggestions, title
 
     @staticmethod
     async def update_suggestion_tags(

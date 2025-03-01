@@ -4,6 +4,8 @@ def get_user_choice():
     print("2. 사진 첨부하지 않음 (직접 텍스트 입력)")
     choice = input("선택 (1 또는 2): ")
     return choice.strip()
+
+
 from loguru import logger
 
 from services.videosearch_service import VideoSearchService
@@ -14,7 +16,6 @@ from ocr_v2 import (
     CLOVA_AI_Reply_Suggestions,
     CLOVA_AI_New_Reply_Suggestions,
     CLOVA_AI_Style_Analysis,
-
     analyze_situation,
     analyze_situation_accent_purpose,
     generate_suggestions_situation,
@@ -36,7 +37,6 @@ def main():
     generate_suggestions_situation("아, 자고싶다.")
     # generate_reply_suggestions_accent_purpose("아, 자고싶다.", "싸가지없게", "카카오톡")
     # New_Reply_Suggestions_Detailed("아, 자고싶다.", "싸가지없게", "카카오톡", "자고싶다는 말을 퉁명스럽게 전달하고싶어요")
-
 
     # # test1: 이미지 -> 상황파악
     # image_files = []
@@ -62,7 +62,6 @@ def main():
     # # test4: 상황+말투+용도 -> 새로운 답변 추천
     # situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
     # print(New_Reply_Suggestions(situation, accent, purpose))
-
 
     # # test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천
     # situation, accent, purpose = Situation_Accent_Purpose(

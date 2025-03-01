@@ -11,10 +11,11 @@ from app.suggester.suggester_request import (
 )
 from app.suggester.suggester_response import (
     AnalyzeImagesConversationResponse,
-    GenerateSuggestionResponse,
     SuggestionResponse,
     GetMySuggestionsResponse,
     DeleteSuggestionResponse,
+    GenerateSuggestionsResponse,
+    GenerateSuggestion,
 )
 from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
@@ -63,18 +64,19 @@ async def analyze_images(
 @router.post(
     "/generate",
     summary="상황, 말투, 용도, 상세 정보를 받아 AI 글을 생성하여 반환",
-    response_model=GenerateSuggestionResponse,
+    response_model=GenerateSuggestionsResponse,
 )
 async def generate_suggestion(
     request: GenerateSuggestionRequest,
-) -> GenerateSuggestionResponse:
+) -> GenerateSuggestionsResponse:
 
     # TODO AI API 호출해서 올리는거
-    suggestions = await SuggesterService.generate_suggestions(
+    suggestions, titles = await SuggesterService.generate_suggestions(
         situation=request.situation, tone=request.tone, usage=request.usage, detail=request.detail
     )
 
-    return GenerateSuggestionResponse(suggestions=suggestions)
+    result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]
+    return GenerateSuggestionsResponse(suggestions=result)
 
 
 @router.post("", response_model=SuggestionResponse, summary="유저가 생성한 글제안 - 저장")
@@ -82,10 +84,11 @@ async def save_suggestion(
     request: SuggestionRequest,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionResponse:
-    new_suggestion = await SuggesterService.create_suggestion(user.id, request.tags, request.suggestion)
+    new_suggestion = await SuggesterService.create_suggestion(user.id, request.title, request.suggestion, request.tags)
 
     return SuggestionResponse(
         id=str(new_suggestion.id),
+        title=new_suggestion.title,
         tags=new_suggestion.tag,
         suggestion=new_suggestion.suggestion,
         updated_at=new_suggestion.updated_at,
@@ -110,6 +113,7 @@ async def get_suggestion(
 
     return SuggestionResponse(
         id=str(suggestion.id),
+        title=suggestion.title,
         tags=suggestion.tag,
         suggestion=suggestion.suggestion,
         updated_at=suggestion.updated_at,
@@ -126,6 +130,28 @@ async def get_my_suggestions(
     suggestion_responses = [
         SuggestionResponse(
             id=str(my_suggestion.id),
+            title=my_suggestion.title,
+            tags=my_suggestion.tag,
+            suggestion=my_suggestion.suggestion,
+            updated_at=my_suggestion.updated_at,
+            created_at=my_suggestion.created_at,
+        )
+        for my_suggestion in my_suggestions
+    ]
+    return GetMySuggestionsResponse(
+        suggestions=suggestion_responses,
+    )
+
+
+@router.get("user/summary")
+async def get_my_suggestions_summary(
+    user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
+) -> GetMySuggestionsResponse:
+    my_suggestions = await SuggesterService.get_suggestions_by_user(user.id)
+    suggestion_responses = [
+        SuggestionResponse(
+            id=str(my_suggestion.id),
+            title=my_suggestion.title,
             tags=my_suggestion.tag,
             suggestion=my_suggestion.suggestion,
             updated_at=my_suggestion.updated_at,
@@ -153,13 +179,16 @@ async def update_suggestion(
     if suggestion.user_id != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    updated_suggestion = await SuggesterService.update_suggestion(suggestion_id, request.suggestion, request.tags)
+    updated_suggestion = await SuggesterService.update_suggestion(
+        suggestion_id, request.title, request.suggestion, request.tags
+    )
 
     if not updated_suggestion:
         raise HTTPException(status_code=500, detail="Failed to delete suggestion")
 
     return SuggestionResponse(
         id=str(updated_suggestion.id),
+        title=updated_suggestion.title,
         tags=updated_suggestion.tag,
         suggestion=updated_suggestion.suggestion,
         updated_at=updated_suggestion.updated_at,
@@ -208,6 +237,7 @@ async def update_suggestion_tag(
 
     return SuggestionResponse(
         id=str(updated_suggestion.id),
+        title=updated_suggestion.title,
         tags=updated_suggestion.tag,
         suggestion=updated_suggestion.suggestion,
         updated_at=updated_suggestion.updated_at,

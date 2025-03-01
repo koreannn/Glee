@@ -50,6 +50,7 @@ async def exists_suggestion() -> SuggesterDocument:
     suggestion_collection = mongo.db["suggester"]
 
     suggester_dto = SuggesterDTO(
+        title="Test title",
         user_id=ObjectId("67bd950e6a524a8132db160d"),
         tag=[SuggestionTagType.SCHOOL.value, SuggestionTagType.APOLOGY.value],
         suggestion="Test suggestion",
@@ -62,6 +63,7 @@ async def exists_suggestion() -> SuggesterDocument:
     return SuggesterDocument(
         _id=result.inserted_id,  # ✅ 삽입된 ObjectId 사용
         user_id=suggester_dto.user_id,
+        title=suggester_dto.title,
         tag=tag,
         suggestion=suggester_dto.suggestion,
         created_at=suggester_dto.created_at,
