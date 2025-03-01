@@ -42,6 +42,7 @@ async def get_recommend_suggestions() -> SuggestionsResponse:
         )
         for suggestion in suggestions
     ]
+    logger.info("Returning recommended suggestions")
     return SuggestionsResponse(
         suggestions=suggestion_responses,
     )
@@ -60,6 +61,7 @@ async def analyze_images(
     image_file_4: Optional[UploadFile] = File(None),
 ) -> AnalyzeImagesConversationResponse:
 
+    logger.info("Received image analysis request")
     image_files = [file for file in [image_file_1, image_file_2, image_file_3, image_file_4] if file is not None]
     if len(image_files) > 4:
         raise HTTPException(status_code=400, detail="You can only upload up to 4 images.")
@@ -68,7 +70,7 @@ async def analyze_images(
         raise HTTPException(status_code=400, detail="You must upload at least one image.")
 
     files_data = [(file.filename, await file.read()) for file in image_files]
-
+    logger.info(f"Analyzing images for purpose: {purpose}")
     if purpose == PurposeType.PHOTO_RESPONSE:
         situation = analyze_situation(files_data)
         tone = ""
@@ -78,7 +80,7 @@ async def analyze_images(
         situation, tone, usage = analyze_situation_accent_purpose(files_data)
     else:
         raise HTTPException(status_code=400, detail="Invalid purpose.")
-
+    logger.info("Image analysis completed successfully")
     return AnalyzeImagesConversationResponse(situation=situation, tone=tone, usage=usage, purpose=purpose)
 
 
@@ -91,13 +93,15 @@ async def generate_suggestion(
     request: GenerateSuggestionRequest,
     user: UserDocument | None = Depends(JwtHandler.get_optional_current_user),  # ✅ JWT 인증된 사용자
 ) -> GenerateSuggestionsResponse:
+    logger.info(f"Generating suggestions - User: {user.nickname if user else 'Guest'}, Request: {request}")
 
-    # TODO AI API 호출해서 올리는거
     suggestions, titles = await SuggesterService.generate_suggestions(
         situation=request.situation, tone=request.tone, usage=request.usage, detail=request.detail
     )
 
     result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]
+
+    logger.info(f"Generated suggestions - User: {user.nickname if user else 'Guest'}, Suggestions: {result}")
 
     if user:
         _suggestions = [Suggestion(title=suggestion.title, content=suggestion.content) for suggestion in result]
@@ -111,7 +115,9 @@ async def save_suggestion(
     request: SuggestionRequest,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionResponse:
+    logger.info(f"User {user.id} is saving a suggestion: {request.title}")
     new_suggestion = await SuggesterService.create_suggestion(user.id, request.title, request.suggestion, request.tags)
+    logger.info(f"Suggestion saved successfully with ID: {new_suggestion.id}")
 
     return SuggestionResponse(
         id=str(new_suggestion.id),
@@ -128,15 +134,19 @@ async def get_suggestion(
     suggestion_id: str,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionResponse:
-    """ID를 기반으로 AI 추천 데이터를 가져옴"""
+    logger.info(f"Fetching suggestion with ID: {suggestion_id}")
     suggestion = await SuggesterService.get_suggestion_by_id(suggestion_id)
 
     if not suggestion:
+        logger.error(f"Suggestion with ID {suggestion_id} not found")
         raise HTTPException(status_code=404, detail="Suggestion not found")
 
     # ✅ 사용자가 자신의 데이터만 조회할 수 있도록 제한
     if suggestion.user_id != user.id:
+        logger.error(f"Unauthorized access attempt by user {user.id} for suggestion {suggestion_id}")
+
         raise HTTPException(status_code=403, detail="Access denied")
+    logger.info(f"Suggestion {suggestion_id} fetched successfully")
 
     return SuggestionResponse(
         id=str(suggestion.id),
@@ -152,7 +162,8 @@ async def get_suggestion(
 async def get_my_suggestions(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionsResponse:
-    """현재 사용자의 AI 추천 데이터 목록을 가져옴"""
+    logger.info(f"Fetching suggestions for user: {user.id}")
+
     my_suggestions = await SuggesterService.get_suggestions_by_user(user.id)
     suggestion_responses = [
         SuggestionResponse(
@@ -165,6 +176,8 @@ async def get_my_suggestions(
         )
         for my_suggestion in my_suggestions
     ]
+    logger.info(f"Fetched {len(my_suggestions)} suggestions for user {user.id}")
+
     return SuggestionsResponse(
         suggestions=suggestion_responses,
     )
@@ -174,6 +187,8 @@ async def get_my_suggestions(
 async def get_my_suggestions_summary(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionsResponse:
+    logger.info(f"Fetching summary for user: {user.id}")
+
     my_suggestions = await SuggesterService.get_suggestions_by_user(user.id)
     suggestion_responses = [
         SuggestionResponse(
@@ -186,6 +201,7 @@ async def get_my_suggestions_summary(
         )
         for my_suggestion in my_suggestions
     ]
+    logger.info(f"Fetched summary with {len(my_suggestions)} suggestions for user {user.id}")
     return SuggestionsResponse(
         suggestions=suggestion_responses,
     )
@@ -197,13 +213,18 @@ async def update_suggestion(
     suggestion_id: str,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionResponse:
+    logger.info(f"User {user.id} requested to update suggestion {suggestion_id}")
+
     suggestion = await SuggesterService.get_suggestion_by_id(suggestion_id)
 
     if not suggestion:
+        logger.error(f"Suggestion {suggestion_id} not found")
+
         raise HTTPException(status_code=404, detail="Suggestion not found")
 
     # ✅ 사용자가 자신의 데이터만 수정할 수 있도록 제한
     if suggestion.user_id != user.id:
+        logger.error(f"Failed to update suggestion {suggestion_id}")
         raise HTTPException(status_code=403, detail="Access denied")
 
     updated_suggestion = await SuggesterService.update_suggestion(
@@ -211,7 +232,9 @@ async def update_suggestion(
     )
 
     if not updated_suggestion:
+        logger.error(f"Failed to update suggestion {suggestion_id}")
         raise HTTPException(status_code=500, detail="Failed to delete suggestion")
+    logger.info(f"Suggestion {suggestion_id} updated successfully")
 
     return SuggestionResponse(
         id=str(updated_suggestion.id),
@@ -229,16 +252,22 @@ async def delete_suggestion(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> DeleteSuggestionResponse:
     suggestion = await SuggesterService.get_suggestion_by_id(suggestion_id)
-
+    logger.info(f"User {user.id} requested to delete suggestion {suggestion_id}")
     if not suggestion:
+        logger.error(f"Suggestion {suggestion_id} not found")
+
         raise HTTPException(status_code=404, detail="Suggestion not found")
 
     # ✅ 사용자가 자신의 데이터만 삭제할 수 있도록 제한
     if suggestion.user_id != user.id:
+        logger.error(f"Unauthorized delete attempt by user {user.id} on suggestion {suggestion_id}")
+
         raise HTTPException(status_code=403, detail="Access denied")
 
     success = await SuggesterService.delete_suggestion(suggestion_id)
     if not success:
+        logger.error(f"Failed to delete suggestion {suggestion_id}")
+
         raise HTTPException(status_code=500, detail="Failed to delete suggestion")
 
     return DeleteSuggestionResponse(
@@ -251,15 +280,22 @@ async def delete_suggestion(
 async def update_suggestion_tag(
     request: UpdateSuggestionTagsRequest, user: UserDocument = Depends(JwtHandler.get_current_user)
 ) -> SuggestionResponse:
+    logger.info(f"User {user.id} requested to update tags for suggestion {request.suggestion_id}")
+
     suggestion = await SuggesterService.get_suggestion_by_id(request.suggestion_id)
 
     if not suggestion:
+        logger.error(f"Suggestion {request.suggestion_id} not found")
+
         raise HTTPException(status_code=404, detail="Suggestion not found")
 
     if suggestion.user_id != user.id:
+        logger.error(f"Unauthorized tag update attempt by user {user.id} on suggestion {request.suggestion_id}")
+
         raise HTTPException(status_code=403, detail="Access denied")
 
     updated_suggestion = await SuggesterService.update_suggestion_tags(request.suggestion_id, request.tags)
+    logger.info(f"Tags updated successfully for suggestion {request.suggestion_id}")
 
     return SuggestionResponse(
         id=str(updated_suggestion.id),

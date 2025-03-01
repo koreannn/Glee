@@ -14,9 +14,8 @@ logger = logging.getLogger(__name__)
 @router.get("", response_model=GetHistoryResponse)
 async def get_history(user: UserDocument = Depends(JwtHandler.get_current_user)) -> GetHistoryResponse:
     histories = await HistoryService.get_histories_by_user(user.id)
-    history = [History(suggestions=history.suggestions, updated_at=history.updated_at, created_at=history.created_at) for history in histories]
-    return GetHistoryResponse(
-        history=history
-    )
-
-
+    history = [
+        History(suggestions=history.suggestions, updated_at=history.updated_at, created_at=history.created_at)
+        for history in histories
+    ]
+    return GetHistoryResponse(history=history)

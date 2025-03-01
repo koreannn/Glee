@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from app.utils.models.suggestion import Suggestion
 
 
-
 class History(BaseModel):
     suggestions: list[Suggestion]
     updated_at: datetime
@@ -14,4 +13,3 @@ class History(BaseModel):
 
 class GetHistoryResponse(BaseModel):
     history: list[History]
-

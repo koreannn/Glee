@@ -7,7 +7,6 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.core.enums import PurposeType, SuggestionTagType
 from app.suggester.suggester_document import SuggesterDocument
-from app.suggester.suggester_request import GenerateSuggestionRequest
 from app.user.user_document import UserDocument
 
 
@@ -17,7 +16,7 @@ async def test_generate_suggestion() -> None:
         "situation": "카카오톡으로 사과하려는 상황이야",
         "tone": "친절하게",
         "usage": "사과",
-        "detail": "앞으로도 친하게 지내고 싶은 친구야"
+        "detail": "앞으로도 친하게 지내고 싶은 친구야",
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/suggester/generate", json=data)

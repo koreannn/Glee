@@ -25,8 +25,6 @@ def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(httpBearer)) 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
 
-
-
 def optional_verify_jwt(credentials: HTTPAuthorizationCredentials | None = Depends(httpBearer)) -> Any | None:
     if not credentials or not credentials.credentials:
         return None

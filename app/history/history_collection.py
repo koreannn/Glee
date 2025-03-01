@@ -1,9 +1,8 @@
-from dataclasses import asdict, is_dataclass
+from dataclasses import asdict
 from typing import Any
 
 
 from app.history.history_document import HistoryDTO, HistoryDocument
-from app.utils.models.suggestion import Suggestion
 from app.utils.mongo import db
 from bson import ObjectId
 
@@ -17,7 +16,6 @@ class HistoryCollection:
     async def set_index(cls) -> None:
         """필요한 인덱스 설정"""
         ...
-
 
     @classmethod
     async def create(cls, history_dto: HistoryDTO) -> HistoryDocument:

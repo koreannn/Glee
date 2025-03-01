@@ -26,16 +26,18 @@ class HistoryService:
 
         history_documents = []
         for data in data_list:
-            history_documents.append(HistoryDocument(
-                user_id=data["user_id"],
-                suggestions=[Suggestion(
-                    title = suggestion_data["title"],
-                    content = suggestion_data["content"])
-                    for suggestion_data in data["suggestions"]],
-                updated_at=data["updated_at"],
-                created_at=data["created_at"],
-                _id=data["_id"],
-            ))
+            history_documents.append(
+                HistoryDocument(
+                    user_id=data["user_id"],
+                    suggestions=[
+                        Suggestion(title=suggestion_data["title"], content=suggestion_data["content"])
+                        for suggestion_data in data["suggestions"]
+                    ],
+                    updated_at=data["updated_at"],
+                    created_at=data["created_at"],
+                    _id=data["_id"],
+                )
+            )
 
         return history_documents
 
