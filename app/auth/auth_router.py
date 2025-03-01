@@ -28,7 +28,9 @@ async def get_kakao_code() -> KakaoAuthUrlResponse:
 
 
 @router.get("/callback", response_model=KakaoCallbackResponse)
-async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인증 코드")) -> KakaoCallbackResponse:
+async def kakao_callback(
+    code: str = Query(..., summary="OAtuh 인증 코드 발급", description="카카오 OAuth 인증 코드")
+) -> KakaoCallbackResponse:
     """카카오 OAuth 로그인 후 access_token과 refresh_token 발급"""
     token_info = await AuthService.get_token(code)
     if "access_token" not in token_info:
@@ -58,7 +60,7 @@ async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인
     )
 
 
-@router.post("/refresh_token", response_model=RefreshTokenResponse)
+@router.post("/refresh_token", summary="새로운 액세스 토큰 발급", response_model=RefreshTokenResponse)
 async def refresh_token(request: KakaoRefreshTokenAuthRequest) -> RefreshTokenResponse:
     """리프레시 토큰을 사용해 새로운 액세스 토큰을 발급"""
     try:

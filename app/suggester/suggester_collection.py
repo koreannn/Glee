@@ -40,11 +40,25 @@ class SuggesterCollection:
         cursor = cls._collection.find({"user_id": user_id})
         return await cursor.to_list(length=100)
 
-    # @classmethod
-    # async def update(cls, suggestion_id: str, updated_data: dict) -> bool:
-    #     """추천 데이터 업데이트"""
-    #     result = await cls._collection.update_one({"_id": ObjectId(suggestion_id)}, {"$set": updated_data})
-    #     return result.modified_count > 0
+    @classmethod
+    async def update(cls, suggestion_id: str, suggestion: str, tags: list[SuggestionTagType]) -> SuggesterDocument:
+        """추천 데이터 업데이트"""
+        tags_str = [tag.value for tag in tags]
+
+        result = await cls._collection.find_one_and_update(
+            {"_id": ObjectId(suggestion_id)},
+            {"$set": {"tag": tags_str, "suggestion": suggestion, "updated_at": datetime.now()}},
+            return_document=ReturnDocument.AFTER,  # 업데이트된 문서를 반환
+        )
+
+        return SuggesterDocument(
+            user_id=result["user_id"],
+            tag=tags,
+            suggestion=suggestion,
+            created_at=result["created_at"],
+            updated_at=result["updated_at"],
+            _id=ObjectId(suggestion_id),
+        )
 
     @classmethod
     async def delete(cls, suggestion_id: str) -> bool:

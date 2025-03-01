@@ -55,6 +55,12 @@ class SuggesterService:
         return await SuggesterCollection.delete(suggestion_id)
 
     @staticmethod
+    async def update_suggestion(
+        suggestion_id: str, suggestion: str, tags: list[SuggestionTagType]
+    ) -> SuggesterDocument:
+        return await SuggesterCollection.update(suggestion_id, suggestion, tags)
+
+    @staticmethod
     async def generate_suggestions(
         situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
     ) -> list[str]:

@@ -25,41 +25,43 @@ load_dotenv("../.env")  # .env 파일 로드
 
 
 # 중복되는 문장 제거..
-#def deduplicate_sentences(text):
+# def deduplicate_sentences(text):
 #    text = text.strip()
 
- #   lines = [line.strip() for line in text.splitlines() if line.strip()]
- #   dedup_lines = []
- #   for line in lines:
- #       if not dedup_lines or dedup_lines[-1] != line:
- #           dedup_lines.append(line)
- #   new_text = "\n".join(dedup_lines)
+#   lines = [line.strip() for line in text.splitlines() if line.strip()]
+#   dedup_lines = []
+#   for line in lines:
+#       if not dedup_lines or dedup_lines[-1] != line:
+#           dedup_lines.append(line)
+#   new_text = "\n".join(dedup_lines)
 
-  #  if len(new_text) > 0:
-  #      lines = new_text.splitlines()
-  #      half = len(lines) // 2
-  #      if len(lines) % 2 == 0 and lines[:half] == lines[half:]:
-  #          return "\n".join(lines[:half]).strip()
+#  if len(new_text) > 0:
+#      lines = new_text.splitlines()
+#      half = len(lines) // 2
+#      if len(lines) % 2 == 0 and lines[:half] == lines[half:]:
+#          return "\n".join(lines[:half]).strip()
 
-  #  return new_text
+#  return new_text
+
 
 # 중복 제거 함수(2)
 def deduplicate_sentences(text):
     text = text.strip()
-    
+
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     dedup_lines = []
     for line in lines:
         if not dedup_lines or dedup_lines[-1] != line:
             dedup_lines.append(line)
     new_text = "\n".join(dedup_lines)
-    
+
     if len(new_text) > 0:
         half = len(new_text) // 2
         if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
             return new_text[:half].strip()
-    
+
     return new_text
+
 
 # -------------------------------------------------------------------
 # 1) CLOVA OCR 호출 함수

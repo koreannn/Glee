@@ -164,3 +164,46 @@ async def test_analyze_images_to_similar_vibe(test_image_path: Path, auth_header
     assert response.json()["purpose"] == PurposeType.SIMILAR_VIBE_RESPONSE.value
     assert response.json()["tone"] != ""
     assert response.json()["usage"] != ""
+
+
+@pytest.mark.asyncio
+async def test_update_suggestion(auth_header: dict[str, str]) -> None:
+    suggestion_id = str(ObjectId())
+    suggestion = "Origin suggestion"
+    update_suggestion = "Updated suggestion"
+    tags = [SuggestionTagType.FAVORITES]
+    tags_str = [SuggestionTagType.FAVORITES.value]
+
+    data = {"tags": tags_str, "suggestion": update_suggestion}
+    with (
+        patch(
+            "app.suggester.suggester_service.SuggesterService.update_suggestion", new_callable=AsyncMock
+        ) as mock_update_suggestion,
+        patch(
+            "app.suggester.suggester_service.SuggesterService.get_suggestion_by_id", new_callable=AsyncMock
+        ) as mock_get_suggestion,
+    ):
+
+        mock_update_suggestion.return_value = AsyncMock(
+            id=ObjectId(suggestion_id),
+            tag=tags,
+            suggestion=update_suggestion,
+            updated_at="2024-02-25T12:00:00",
+            created_at="2024-02-25T12:00:00",
+            user_id=ObjectId("67bd950e6a524a8132db160d"),
+        )
+        mock_get_suggestion.return_value = AsyncMock(
+            id=ObjectId(suggestion_id),
+            tag=tags,
+            suggestion=suggestion,
+            updated_at="2024-02-25T12:00:00",
+            created_at="2024-02-25T12:00:00",
+            user_id=ObjectId("67bd950e6a524a8132db160d"),
+        )
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.put(f"/suggester/{suggestion_id}", json=data, headers=auth_header)
+
+    assert response.status_code == 200
+    assert response.json()["suggestion"] == update_suggestion
+    assert response.json()["tags"] == tags_str

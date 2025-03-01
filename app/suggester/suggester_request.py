@@ -10,7 +10,7 @@ class GenerateSuggestionRequest(BaseModel):
     detail: str | None
 
 
-class SaveSuggestionRequest(BaseModel):
+class SuggestionRequest(BaseModel):
     suggestion: str
     tags: list[SuggestionTagType]
 

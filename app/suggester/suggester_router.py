@@ -6,7 +6,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
 from AI.ocr_v2 import analyze_situation, analyze_situation_accent_purpose
 from app.suggester.suggester_request import (
     GenerateSuggestionRequest,
-    SaveSuggestionRequest,
+    SuggestionRequest,
     UpdateSuggestionTagsRequest,
 )
 from app.suggester.suggester_response import (
@@ -79,7 +79,7 @@ async def generate_suggestion(
 
 @router.post("", response_model=SuggestionResponse, summary="유저가 생성한 글제안 - 저장")
 async def save_suggestion(
-    request: SaveSuggestionRequest,
+    request: SuggestionRequest,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SuggestionResponse:
     new_suggestion = await SuggesterService.create_suggestion(user.id, request.tags, request.suggestion)
@@ -93,7 +93,7 @@ async def save_suggestion(
     )
 
 
-@router.get("/{suggestion_id}", response_model=SuggestionResponse, summary="추천 데이터 가져오기")
+@router.get("/{suggestion_id}", response_model=SuggestionResponse, summary="글 제안 가져오기")
 async def get_suggestion(
     suggestion_id: str,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
@@ -117,7 +117,7 @@ async def get_suggestion(
     )
 
 
-@router.get("/user/me", response_model=GetMySuggestionsResponse, summary="내 모든 추천 데이터 가져오기")
+@router.get("/user/me", response_model=GetMySuggestionsResponse, summary="내 글 제안 가져오기")
 async def get_my_suggestions(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> GetMySuggestionsResponse:
@@ -138,7 +138,36 @@ async def get_my_suggestions(
     )
 
 
-@router.delete("/{suggestion_id}", response_model=DeleteSuggestionResponse, summary="추천 데이터 삭제")
+@router.put("/{suggestion_id}", response_model=SuggestionResponse, summary="내 글 제안 수정")
+async def update_suggestion(
+    request: SuggestionRequest,
+    suggestion_id: str,
+    user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
+) -> SuggestionResponse:
+    suggestion = await SuggesterService.get_suggestion_by_id(suggestion_id)
+
+    if not suggestion:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+
+    # ✅ 사용자가 자신의 데이터만 수정할 수 있도록 제한
+    if suggestion.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    updated_suggestion = await SuggesterService.update_suggestion(suggestion_id, request.suggestion, request.tags)
+
+    if not updated_suggestion:
+        raise HTTPException(status_code=500, detail="Failed to delete suggestion")
+
+    return SuggestionResponse(
+        id=str(updated_suggestion.id),
+        tags=updated_suggestion.tag,
+        suggestion=updated_suggestion.suggestion,
+        updated_at=updated_suggestion.updated_at,
+        created_at=updated_suggestion.created_at,
+    )
+
+
+@router.delete("/{suggestion_id}", response_model=DeleteSuggestionResponse, summary="내 글 제안 삭제")
 async def delete_suggestion(
     suggestion_id: str,
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자

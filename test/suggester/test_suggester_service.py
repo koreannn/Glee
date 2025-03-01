@@ -58,7 +58,7 @@ async def test_update_suggestion_tags() -> None:
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     update_tag = [SuggestionTagType.SCHOOL, SuggestionTagType.COMFORT]
-    suggestion = "This will be deleted"
+    suggestion = "update suggestion"
 
     document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
 
@@ -66,4 +66,18 @@ async def test_update_suggestion_tags() -> None:
 
     assert updated_document.id == document.id
     assert updated_document.tag == update_tag
-    # 삭제 후 다시 조회
+
+
+@pytest.mark.asyncio
+async def test_update_suggestion() -> None:
+    """저장된 AI 추천 데이터를 삭제하는 서비스 로직 테스트"""
+    user_id = ObjectId()
+    tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
+    suggestion = "update suggestion"
+    update_suggestion = "update suggestion"
+
+    document = await SuggesterService.create_suggestion(user_id, tag, suggestion)
+    updated_document = await SuggesterService.update_suggestion(str(document.id), update_suggestion, tag)
+
+    assert updated_document.id == document.id
+    assert updated_document.suggestion == update_suggestion

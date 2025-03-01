@@ -24,8 +24,6 @@ class Settings(BaseSettings):
     CLOVA_REQ_ID_STYLE: str
     CLOVA_REQ_ID_glee: str
 
-    # ✅ dev 환경에서만 포함
-    test_mongo_uri: str | None = None
     test_jwt_token: str | None = None
 
 
