@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 
 from loguru import logger
-from utils.get_headers_payloads import get_headers_payloads
+from AI.utils.get_headers_payloads import get_headers_payloads
 from app.core.settings import settings
+from AI.utils.deduplicate_sentence import deduplicate_sentences
 
 
 def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
@@ -43,6 +44,7 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
                         title_text += token
                     except Exception:
                         continue
+            title_text = deduplicate_sentences(title_text)
             suggestions.append(title_text)
         else:
             suggestions.append(f"Error: {response.status_code} - {response.text}")
