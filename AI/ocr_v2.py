@@ -13,7 +13,7 @@ import yaml
 from loguru import logger
 
 from app.core.settings import settings
-from AI.utils.deduplicate_sentence import deduplicate_sentences
+#from AI.utils.deduplicate_sentence import deduplicate_sentences
 from AI.utils.get_headers_payloads import get_headers_payloads
 from AI.services.title_suggestion import CLOVA_AI_Title_Suggestions
 
@@ -25,6 +25,25 @@ def load_config(file_path):
 
 
 load_dotenv("../.env")  # .env 파일 로드
+
+def deduplicate_sentences(text):
+    text = text.strip()
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    
+    dedup_lines = []
+    for line in lines:
+        if not dedup_lines or dedup_lines[-1] != line:
+            dedup_lines.append(line)
+
+    new_text = "\n".join(dedup_lines)
+    
+    if len(new_text) > 0:
+        half = len(new_text) // 2
+        if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
+            return new_text[:half].strip()
+    
+    return new_text
+
 
 
 # -------------------------------------------------------------------
