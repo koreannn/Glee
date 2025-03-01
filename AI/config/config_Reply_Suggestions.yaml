@@ -6,10 +6,10 @@ SYSTEM_PROMPT:
   '''
 
 HYPER_PARAM:
-  topP: 0.8
-  topK: 0
-  maxTokens: 256
-  temperature: 0.5
-  repeatPenalty: 5.0
+  topP: 0.9 #0.8
+  topK: 5 #0
+  maxTokens: 512 #256
+  temperature: 0.7 #0.5
+  repeatPenalty: 2.0 #5.0
   stopBefore: []
   includeAiFilters: True
