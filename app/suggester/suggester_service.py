@@ -83,3 +83,8 @@ class SuggesterService:
         tags: list[SuggestionTagType],
     ) -> SuggesterDocument:
         return await SuggesterCollection.update_tag(suggestion_id, tags)
+
+    @staticmethod
+    async def get_recommend_suggestions() -> list[SuggesterDocument]:
+        data_list = await SuggesterCollection.get_recommend_documents()
+        return [SuggesterDocument(**data) for data in data_list]

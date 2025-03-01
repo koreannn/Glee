@@ -2,6 +2,7 @@ from dataclasses import asdict
 from datetime import datetime
 from typing import Any
 
+import pymongo
 from pymongo import ReturnDocument
 
 from app.core.enums import SuggestionTagType
@@ -14,6 +15,12 @@ class SuggesterCollection:
     """MongoDB `suggester` 컬렉션을 관리하는 클래스"""
 
     _collection = db["suggester"]
+
+    @classmethod
+    async def set_index(cls) -> None:
+        """필요한 인덱스 설정"""
+        await cls._collection.create_index([("user_id", pymongo.ASCENDING)])  # 사용자별 검색 최적화
+        await cls._collection.create_index([("recommend", pymongo.ASCENDING)])  # ✅ recommend 필드 인덱싱 추가
 
     @classmethod
     async def create(cls, suggester_dto: SuggesterDTO) -> SuggesterDocument:
@@ -92,3 +99,8 @@ class SuggesterCollection:
             updated_at=updated_doc["updated_at"],
             _id=updated_doc["_id"],
         )
+
+    @classmethod
+    async def get_recommend_documents(cls) -> list[dict[Any, Any]]:
+        cursor = cls._collection.find({"recommend": True})
+        return await cursor.to_list(length=100)  # 최대 100개 가져오기

@@ -12,10 +12,10 @@ from app.suggester.suggester_request import (
 from app.suggester.suggester_response import (
     AnalyzeImagesConversationResponse,
     SuggestionResponse,
-    GetMySuggestionsResponse,
     DeleteSuggestionResponse,
-    GenerateSuggestionsResponse,
     GenerateSuggestion,
+    GenerateSuggestionsResponse,
+    SuggestionsResponse,
 )
 from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
@@ -24,6 +24,25 @@ from app.utils.jwt_handler import JwtHandler
 
 router = APIRouter(prefix="/suggester", tags=["suggester"])
 logger = logging.getLogger(__name__)
+
+
+@router.get("/recommend", response_model=SuggestionsResponse)
+async def get_recommend_suggestions() -> SuggestionsResponse:
+    suggestions = await SuggesterService.get_recommend_suggestions()
+    suggestion_responses = [
+        SuggestionResponse(
+            id=str(suggestion.id),
+            title=suggestion.title,
+            tags=suggestion.tag,
+            suggestion=suggestion.suggestion,
+            updated_at=suggestion.updated_at,
+            created_at=suggestion.created_at,
+        )
+        for suggestion in suggestions
+    ]
+    return SuggestionsResponse(
+        suggestions=suggestion_responses,
+    )
 
 
 @router.post(
@@ -121,10 +140,10 @@ async def get_suggestion(
     )
 
 
-@router.get("/user/me", response_model=GetMySuggestionsResponse, summary="내 글 제안 가져오기")
+@router.get("/user/me", response_model=SuggestionsResponse, summary="내 글 제안 가져오기")
 async def get_my_suggestions(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
-) -> GetMySuggestionsResponse:
+) -> SuggestionsResponse:
     """현재 사용자의 AI 추천 데이터 목록을 가져옴"""
     my_suggestions = await SuggesterService.get_suggestions_by_user(user.id)
     suggestion_responses = [
@@ -138,7 +157,7 @@ async def get_my_suggestions(
         )
         for my_suggestion in my_suggestions
     ]
-    return GetMySuggestionsResponse(
+    return SuggestionsResponse(
         suggestions=suggestion_responses,
     )
 
@@ -146,7 +165,7 @@ async def get_my_suggestions(
 @router.get("/user/summary")
 async def get_my_suggestions_summary(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
-) -> GetMySuggestionsResponse:
+) -> SuggestionsResponse:
     my_suggestions = await SuggesterService.get_suggestions_by_user(user.id)
     suggestion_responses = [
         SuggestionResponse(
@@ -159,7 +178,7 @@ async def get_my_suggestions_summary(
         )
         for my_suggestion in my_suggestions
     ]
-    return GetMySuggestionsResponse(
+    return SuggestionsResponse(
         suggestions=suggestion_responses,
     )
 

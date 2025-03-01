@@ -56,6 +56,7 @@ async def exists_suggestion() -> SuggesterDocument:
         suggestion="Test suggestion",
         updated_at=datetime.now(),
         created_at=datetime.now(),
+        recommend=True,
     )
 
     result = await suggestion_collection.insert_one(asdict(suggester_dto))

@@ -15,6 +15,7 @@ class SuggesterDocument(BaseDocument):
     suggestion: str
     updated_at: datetime
     created_at: datetime
+    recommend: bool | None = None
 
 
 @dataclass(
@@ -28,3 +29,4 @@ class SuggesterDTO:
     suggestion: str
     updated_at: datetime
     created_at: datetime
+    recommend: bool | None = None

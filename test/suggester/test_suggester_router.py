@@ -181,7 +181,7 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
     tags = [SuggestionTagType.FAVORITES]
     tags_str = [SuggestionTagType.FAVORITES.value]
 
-    data = {"tags": tags_str, "suggestion": update_suggestion, "title":title}
+    data = {"tags": tags_str, "suggestion": update_suggestion, "title": title}
     with (
         patch(
             "app.suggester.suggester_service.SuggesterService.update_suggestion", new_callable=AsyncMock
@@ -216,3 +216,13 @@ async def test_update_suggestion(auth_header: dict[str, str]) -> None:
     assert response.status_code == 200
     assert response.json()["suggestion"] == update_suggestion
     assert response.json()["tags"] == tags_str
+
+
+@pytest.mark.asyncio
+async def test_get_recommend_suggestion(exists_suggestion: SuggesterDocument) -> None:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/suggester/recommend")
+
+    assert response.status_code == 200
+    assert response.json()["suggestions"] != []
+    assert response.json()["suggestions"][0]["id"] == str(exists_suggestion.id)

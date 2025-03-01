@@ -2,6 +2,7 @@ import pytest
 from bson import ObjectId
 
 from app.core.enums import SuggestionTagType
+from app.suggester.suggester_document import SuggesterDocument
 from app.suggester.suggester_service import SuggesterService
 from datetime import datetime
 
@@ -83,3 +84,13 @@ async def test_update_suggestion() -> None:
     assert updated_document.id == document.id
     assert updated_document.title == title
     assert updated_document.suggestion == update_suggestion
+
+
+@pytest.mark.asyncio
+async def test_get_recommend_suggestions(exists_suggestion: SuggesterDocument) -> None:
+    """추천 데이터를 가져오는 서비스 로직 테스트"""
+
+    recommend_documents = await SuggesterService.get_recommend_suggestions()
+
+    assert len(recommend_documents) > 0
+    assert recommend_documents[0].recommend is True
