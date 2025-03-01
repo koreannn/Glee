@@ -96,7 +96,37 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
         if response.status_code == 200:
             result = response.json()
             if "images" not in result or not result["images"]:
-                logger.error(f"OCR 결과에 'images' 키가 없습니다: {resul입
+                logger.error(f"OCR 결과에 'images' 키가 없습니다: {result}")
+                continue
+            if "fields" not in result["images"][0]:
+                logger.error(f"OCR 결과에 'fields' 키가 없습니다: {result}")
+                continue
+
+            extracted_text = ""
+            for field in result["images"][0]["fields"]:
+                extracted_text += field["inferText"] + " "
+
+            # 각 파일의 OCR 결과를 로그에 출력
+            logger.info(f"[{os.path.basename(file_name)}] 추출된 텍스트: {extracted_text.strip()}")
+            total_extracted_text += extracted_text.strip() + "\n"
+        else:
+            logger.error(f"Error: {response.status_code} - {response.text} for file {file_name}")
+
+    return total_extracted_text.strip()
+
+
+# -------------------------------------------------------------------
+# 2) 상황 뱉어내는 함수
+def CLOVA_AI_Situation_Summary(conversation: str) -> str:
+    # (2) .env에서 불러오기
+
+    URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001"
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # config 파일의 절대 경로 설정
+    config_path = BASE_DIR / "config" / "config_Situation_Summary.yaml"
+    headers, payload = get_headers_payloads(str(config_path), "아 배고프다")
 
     response = requests.post(URL, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
