@@ -15,10 +15,10 @@ SYSTEM_PROMPT:
   '''
 
 HYPER_PARAM:
-  topP: 0.8
-  topK: 5
-  maxTokens: 256
-  temperature: 0.7 #기존 0.5
+  topP: 1
+  topK: 0
+  maxTokens: 500
+  temperature: 0.9 #기존 0.5
   repeatPenalty: 5.0 # 기존 5.0
   stopBefore: []
   includeAiFilters: True
