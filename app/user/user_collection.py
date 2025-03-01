@@ -1,3 +1,5 @@
+import pymongo
+
 from app.user.user_document import UserDocument
 from app.user.user_dto import UserData
 from app.utils.mongo import db
@@ -7,6 +9,11 @@ from dataclasses import asdict
 class UserCollection:
 
     _collection = db["users"]
+
+    @classmethod
+    async def set_index(cls) -> None:
+        """인덱스 설정"""
+        await cls._collection.create_index([("kakao_id", pymongo.ASCENDING)], unique=True)
 
     @classmethod
     async def create_or_update(cls, user: UserData) -> str:

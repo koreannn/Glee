@@ -8,7 +8,7 @@ def get_user_choice():
 
 from loguru import logger
 
-from services.videosearch_service import VideoSearchService
+from AI.services.videosearch_service import VideoSearchService
 
 from ocr_v2 import (
     CLOVA_AI_Situation_Summary,
@@ -96,4 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-# test5: 상황+말투+용도+상세설명 -> 새로운 답변 추천

@@ -5,11 +5,12 @@ from pathlib import Path
 
 from loguru import logger
 from AI.utils.get_headers_payloads import get_headers_payloads
+from AI.utils.get_headers_payloads import get_headers_payloads
 from app.core.settings import settings
 from AI.utils.deduplicate_sentence import deduplicate_sentences
 
 
-def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
+def CLOVA_AI_Title_Suggestions(input_text: str) -> list[str]:
 
     # (2) .env에서 불러오기
     BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
@@ -27,7 +28,7 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
     headers, payload = get_headers_payloads(str(config_path), input_text)
     # config = load_config(config_path)
 
-    suggestions = []
+    titles = []
 
     for _ in range(3):  # 새로 고침 하면 새로운 생성을 만들어내도록 수정
         headers, payload = get_headers_payloads(str(config_path), input_text)
@@ -45,8 +46,8 @@ def CLOVA_AI_Title_Suggestions(input_text: str) -> str:
                     except Exception:
                         continue
             title_text = deduplicate_sentences(title_text)
-            suggestions.append(title_text)
+            titles.append(title_text)
         else:
-            suggestions.append(f"Error: {response.status_code} - {response.text}")
+            titles.append(f"Error: {response.status_code} - {response.text}")
         logger.info(f"생성된 내용:\n {title_text}")
-    return suggestions
+    return titles

@@ -2,6 +2,7 @@ from dataclasses import asdict
 from datetime import datetime
 from typing import Any
 
+import pymongo
 from pymongo import ReturnDocument
 
 from app.core.enums import SuggestionTagType
@@ -16,6 +17,12 @@ class SuggesterCollection:
     _collection = db["suggester"]
 
     @classmethod
+    async def set_index(cls) -> None:
+        """필요한 인덱스 설정"""
+        await cls._collection.create_index([("user_id", pymongo.ASCENDING)])  # 사용자별 검색 최적화
+        await cls._collection.create_index([("recommend", pymongo.ASCENDING)])  # ✅ recommend 필드 인덱싱 추가
+
+    @classmethod
     async def create(cls, suggester_dto: SuggesterDTO) -> SuggesterDocument:
         """MongoDB에 데이터 저장 후 ObjectId 반환"""
         result = await cls._collection.insert_one(asdict(suggester_dto))
@@ -23,6 +30,7 @@ class SuggesterCollection:
         return SuggesterDocument(
             user_id=suggester_dto.user_id,
             tag=tags,
+            title=suggester_dto.title,
             suggestion=suggester_dto.suggestion,
             created_at=suggester_dto.created_at,
             updated_at=suggester_dto.updated_at,
@@ -40,11 +48,28 @@ class SuggesterCollection:
         cursor = cls._collection.find({"user_id": user_id})
         return await cursor.to_list(length=100)
 
-    # @classmethod
-    # async def update(cls, suggestion_id: str, updated_data: dict) -> bool:
-    #     """추천 데이터 업데이트"""
-    #     result = await cls._collection.update_one({"_id": ObjectId(suggestion_id)}, {"$set": updated_data})
-    #     return result.modified_count > 0
+    @classmethod
+    async def update(
+        cls, suggestion_id: str, title: str, suggestion: str, tags: list[SuggestionTagType]
+    ) -> SuggesterDocument:
+        """추천 데이터 업데이트"""
+        tags_str = [tag.value for tag in tags]
+
+        result = await cls._collection.find_one_and_update(
+            {"_id": ObjectId(suggestion_id)},
+            {"$set": {"tag": tags_str, "title": title, "suggestion": suggestion, "updated_at": datetime.now()}},
+            return_document=ReturnDocument.AFTER,  # 업데이트된 문서를 반환
+        )
+
+        return SuggesterDocument(
+            title=result["title"],
+            user_id=result["user_id"],
+            tag=tags,
+            suggestion=suggestion,
+            created_at=result["created_at"],
+            updated_at=result["updated_at"],
+            _id=ObjectId(suggestion_id),
+        )
 
     @classmethod
     async def delete(cls, suggestion_id: str) -> bool:
@@ -66,6 +91,7 @@ class SuggesterCollection:
             raise ValueError("Suggestion not found")
 
         return SuggesterDocument(
+            title=updated_doc["title"],
             user_id=updated_doc["user_id"],
             tag=tags,
             suggestion=updated_doc["suggestion"],
@@ -73,3 +99,8 @@ class SuggesterCollection:
             updated_at=updated_doc["updated_at"],
             _id=updated_doc["_id"],
         )
+
+    @classmethod
+    async def get_recommend_documents(cls) -> list[dict[Any, Any]]:
+        cursor = cls._collection.find({"recommend": True})
+        return await cursor.to_list(length=100)  # 최대 100개 가져오기

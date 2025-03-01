@@ -10,11 +10,13 @@ class GenerateSuggestionRequest(BaseModel):
     detail: str | None
 
 
-class SaveSuggestionRequest(BaseModel):
+class SuggestionRequest(BaseModel):
+    title: str
     suggestion: str
     tags: list[SuggestionTagType]
 
 
 class UpdateSuggestionTagsRequest(BaseModel):
+    title: str
     suggestion_id: str
     tags: list[SuggestionTagType]

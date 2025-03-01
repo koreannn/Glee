@@ -11,9 +11,11 @@ from app.utils.models.base_document import BaseDocument
 class SuggesterDocument(BaseDocument):
     user_id: ObjectId
     tag: list[SuggestionTagType]
+    title: str
     suggestion: str
     updated_at: datetime
     created_at: datetime
+    recommend: bool | None = None
 
 
 @dataclass(
@@ -22,7 +24,9 @@ class SuggesterDocument(BaseDocument):
 )
 class SuggesterDTO:
     user_id: ObjectId
+    title: str
     tag: list[str]
     suggestion: str
     updated_at: datetime
     created_at: datetime
+    recommend: bool | None = None

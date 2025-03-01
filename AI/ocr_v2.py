@@ -1,10 +1,4 @@
 import os
-import sys
-
-# 프로젝트 루트 디렉토리를 파이썬 경로에 추가
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
-
 from pathlib import Path
 
 import requests
@@ -19,9 +13,9 @@ import yaml
 from loguru import logger
 
 from app.core.settings import settings
-#from utils.deduplicate_sentence import deduplicate_sentences
-from utils.get_headers_payloads import get_headers_payloads
-from services.title_suggestion import CLOVA_AI_Title_Suggestions
+#from AI.utils.deduplicate_sentence import deduplicate_sentences
+from AI.utils.get_headers_payloads import get_headers_payloads
+from AI.services.title_suggestion import CLOVA_AI_Title_Suggestions
 
 
 def load_config(file_path):
@@ -49,7 +43,9 @@ def deduplicate_sentences(text):
             return new_text[:half].strip()
     
     return new_text
-    
+
+
+
 # -------------------------------------------------------------------
 # 1) CLOVA OCR 호출 함수
 # def CLOVA_OCR(image_files: list[UploadFile]) -> str:
@@ -324,7 +320,7 @@ def analyze_situation_accent_purpose(image_files: list[tuple[str, bytes]]) -> tu
 
 # -------------------------------------------------------------------
 # [3] [1]의 상황을 기반으로 글 제안을 생성하는 함수
-def generate_suggestions_situation(situation: str) -> list[str]:
+def generate_suggestions_situation(situation: str) -> tuple[list[str], list[str]]:
     suggestions = CLOVA_AI_Reply_Suggestions(situation)
     title = CLOVA_AI_Title_Suggestions(situation)
     return suggestions, title
@@ -332,7 +328,7 @@ def generate_suggestions_situation(situation: str) -> list[str]:
 
 # -------------------------------------------------------------------
 # [4] [2]의 상황, 말투, 용도를 기반으로 글 제안을 생성하는 함수
-def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpose: str) -> list[str]:
+def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpose: str) -> tuple[list[str], list[str]]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose)
     title = CLOVA_AI_Title_Suggestions(situation)
     return suggestions, title
@@ -340,9 +336,9 @@ def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpo
 
 # -------------------------------------------------------------------
 # [5] 상황, 말투, 용도, 상세 설명을 기반으로 글 제안을 생성하는 함수
-def New_Reply_Suggestions_Detailed(
+def generate_reply_suggestions_detail(
     situation: str, accent: str, purpose: str, detailed_description: str
-) -> list[str, str, str]:
+) -> tuple[list[str], list[str]]:
     suggestions = CLOVA_AI_New_Reply_Suggestions(situation, accent, purpose, detailed_description)
     title = CLOVA_AI_Title_Suggestions(situation)
     return suggestions, title

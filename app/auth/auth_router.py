@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-from fastapi import APIRouter, HTTPException
-=======
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi import status
 from pydantic import HttpUrl
@@ -12,7 +9,6 @@ from app.auth.auth_response import (
     KakaoAuthUrlResponse,
     CurrentUserResponse,
 )
->>>>>>> origin/main
 from app.auth.auth_service import AuthService
 from app.user.user_document import UserDocument
 
@@ -31,13 +27,10 @@ async def get_kakao_code() -> KakaoAuthUrlResponse:
     return KakaoAuthUrlResponse(auth_url=auth_url)
 
 
-<<<<<<< HEAD
-@router.get("/callback")
-async def kakao_callback(code: str):
-=======
 @router.get("/callback", response_model=KakaoCallbackResponse)
-async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인증 코드")) -> KakaoCallbackResponse:
->>>>>>> origin/main
+async def kakao_callback(
+    code: str = Query(..., summary="OAtuh 인증 코드 발급", description="카카오 OAuth 인증 코드")
+) -> KakaoCallbackResponse:
     """카카오 OAuth 로그인 후 access_token과 refresh_token 발급"""
     token_info = await AuthService.get_token(code)
     if "access_token" not in token_info:
@@ -54,9 +47,6 @@ async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인
     # 새로운 access_token 및 refresh_token 발급
     payload = JwtPayload(id=int(user_data.kakao_id), nickname=user_data.nickname)
 
-<<<<<<< HEAD
-    return {"access_token": access_jwt, "refresh_token": refresh_jwt, "token_type": "bearer"}
-=======
     access_jwt = JwtHandler.create_jwt_token(payload.model_dump())
     refresh_jwt = JwtHandler.create_jwt_token(payload.model_dump())  # 길게 설정 가능
 
@@ -68,10 +58,9 @@ async def kakao_callback(code: str = Query(..., description="카카오 OAuth 인
         profile_image=HttpUrl(user_data.profile_image),
         thumbnail_image=HttpUrl(user_data.thumbnail_image),
     )
->>>>>>> origin/main
 
 
-@router.post("/refresh_token", response_model=RefreshTokenResponse)
+@router.post("/refresh_token", summary="새로운 액세스 토큰 발급", response_model=RefreshTokenResponse)
 async def refresh_token(request: KakaoRefreshTokenAuthRequest) -> RefreshTokenResponse:
     """리프레시 토큰을 사용해 새로운 액세스 토큰을 발급"""
     try:
