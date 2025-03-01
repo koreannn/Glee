@@ -1,58 +1,33 @@
 import os
 import json
+import yaml
 import requests
 import tkinter as tk
 from tkinter import ttk
 from dotenv import load_dotenv
-import re
+
+from utils.deduplicate_sentence import deduplicate_sentences
+from utils.get_headers_payloads import get_headers_payloads
 
 load_dotenv()  # .env 파일 로드
 
 
-def deduplicate_sentences(text):
-    text = text.strip()
-
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    dedup_lines = []
-    for line in lines:
-        if not dedup_lines or dedup_lines[-1] != line:
-            dedup_lines.append(line)
-    new_text = "\n".join(dedup_lines)
-
-    if len(new_text) > 0:
-        half = len(new_text) // 2
-        if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
-            return new_text[:half].strip()
-
-    return new_text
+def load_config(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    return config
 
 
 # 사용자 선택 글제안 ai(노션에 키값 추가했습니다다)
 def clova_ai_glee(prompt):
+    config = load_config("./AI/config/config_case5.yaml")
+
     url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
     request_id = os.getenv("CLOVA_REQ_ID_glee")
 
-    headers = {
-        "Authorization": f"Bearer {bearer_token}",
-        "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
-        "Content-Type": "application/json",
-        "Accept": "text/event-stream",
-    }
-    system_msg = (
-        "사용자가 선택하거나 입력한 내용을 보고 글을 제안해줘. 이때 출력은 오로지 너가 제안하는 문장만 출력해줘"
-    )
-    payload = {
-        "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}],
-        "topP": 0.8,
-        "topK": 0,
-        "maxTokens": 256,
-        "temperature": 0.5,
-        "repeatPenalty": 5.0,
-        "stopBefore": [],
-        "includeAiFilters": True,
-        "seed": 0,
-    }
+    headers, payload = get_headers_payloads(config, prompt)
+
     response = requests.post(url, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
@@ -79,7 +54,11 @@ def clova_ai_title_suggestions(input_text):
     request_id = os.getenv("CLOVA_REQ_ID_TITLE")
 
     suggestions = []
-    system_msg = "사용자가 입력한 내용에 맞는 제목을 작성해줘. 출력은 문장만 출력해줘"
+    system_msg = """
+    사용자가 입력한 내용에 맞는 제목을 작성해줘. 출력은 문장만 출력해줘
+
+
+    """
 
     for _ in range(3):
         headers = {

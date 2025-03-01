@@ -69,5 +69,9 @@ class AuthService:
     async def logout(cls, access_token: str) -> None:
         """카카오 로그아웃 요청"""
         logout_url = "https://kapi.kakao.com/v1/user/logout"
+<<<<<<< HEAD
+        headers = {"Authorization": f"Bearer {access_token}"}
+=======
+>>>>>>> origin/main
         async with httpx.AsyncClient() as client:
             await client.post(logout_url)
