@@ -25,7 +25,10 @@ def load_config(file_path):
     return config
 
 
-load_dotenv("../.env")  # .env 파일 로드
+# .env 파일 경로를 절대 경로로 설정
+BASE_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = BASE_DIR / ".env"
+load_dotenv(ENV_PATH)  # .env 파일 로드
 
 
 def deduplicate_sentences(text):
@@ -58,13 +61,23 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
     URL = os.getenv("CLOVA_OCR_URL")
     SECRET_KEY = os.getenv("CLOVA_OCR_SECRET_KEY")
 
+    logger.info(f"URL: {URL}")
+    logger.info(f"SECRET_KEY: {SECRET_KEY}")
+
     if not URL or not SECRET_KEY:
         URL = settings.CLOVA_OCR_URL
         SECRET_KEY = settings.CLOVA_OCR_SECRET_KEY
+        logger.info(f"settings에서 읽은 URL: {URL}")
+        logger.info(f"settings에서 읽은 SECRET_KEY: {SECRET_KEY}")
 
         if not URL or not SECRET_KEY:
             logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
             return ""
+
+    # # URL이 올바른 형식인지 확인
+    # if not URL.startswith("https://"):
+    #     logger.error(f"잘못된 URL 형식: {URL}")
+    #     return ""
 
     headers = {"X-OCR-SECRET": SECRET_KEY}
     total_extracted_text = ""
@@ -85,13 +98,12 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
 
         payload = {"message": json.dumps(request_json).encode("UTF-8")}
 
-        try:
-            # with open(file_path, "rb") as f:
-            files_data = [("file", (file_name, file_data, f"image/{file_ext}"))]
-            response = requests.post(URL, headers=headers, data=payload, files=files_data, json=request_json)
-        except Exception as e:
-            logger.error(f"파일 업로드 오류({file_name}): {e}")
-            continue
+        # with open(file_path, "rb") as f:
+        files_data = [("file", (file_name, file_data, f"image/{file_ext}"))]
+        response = requests.post(URL, headers=headers, data=payload, files=files_data, json=request_json)
+
+        # logger.error(f"파일 업로드 오류({file_name}): {e}")
+        # continue
 
         if response.status_code == 200:
             result = response.json()
@@ -126,7 +138,7 @@ def CLOVA_AI_Situation_Summary(conversation: str) -> str:
 
     # config 파일의 절대 경로 설정
     config_path = BASE_DIR / "config" / "config_Situation_Summary.yaml"
-    headers, payload = get_headers_payloads(str(config_path), "아 배고프다")
+    headers, payload = get_headers_payloads(str(config_path), conversation)
 
     response = requests.post(URL, headers=headers, json=payload, stream=True)
     if response.status_code == 200:

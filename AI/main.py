@@ -28,6 +28,9 @@ from ocr_v2 import (
     generate_reply_suggestions_accent_purpose,
     generate_reply_suggestions_detail,
     CLOVA_OCR,
+    generate_suggestions_situation,
+    generate_reply_suggestions_accent_purpose,
+    generate_reply_suggestions_detail,
 )
 from AI.services.title_suggestion import CLOVA_AI_Title_Suggestions
 
@@ -52,19 +55,19 @@ def main():
     """
     OCR 테스트
     """
-    image_files = []
-    test_images = ["./AI/OCR_Test1.png", "./AI/OCR_Test2.png", "./AI/OCR_Test3.png", "./AI/OCR_Test4.png"]
+    # image_files = []
+    # test_images = ["./AI/OCR_Test1.png", "./AI/OCR_Test2.png", "./AI/OCR_Test3.png", "./AI/OCR_Test4.png"]
 
-    for image_path in test_images:
-        try:
-            with open(image_path, "rb") as f:
-                file_content = f.read()
-                image_files.append((image_path, file_content))
-        except Exception as e:
-            logger.error(f"파일 읽기 오류({image_path}): {e}")
-            continue
+    # for image_path in test_images:
+    #     try:
+    #         with open(image_path, "rb") as f:
+    #             file_content = f.read()
+    #             image_files.append((image_path, file_content))
+    #     except Exception as e:
+    #         logger.error(f"파일 읽기 오류({image_path}): {e}")
+    #         continue
 
-    CLOVA_OCR(image_files)
+    # CLOVA_OCR(image_files)
 
     # # test2: 이미지 -> 상황파악 + 말투 + 용도
     # image_files = []
@@ -81,8 +84,8 @@ def main():
 
     # analyze_situation_accent_purpose(image_files)
 
-    # # test3: 이미지 -> 답변 추천
-    # print(Reply_Suggestions(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"]))
+    # test3: 이미지 -> 답변 추천
+    print(generate_suggestions_situation("아, 자고싶다."))
 
     # # test4: 상황+말투+용도 -> 새로운 답변 추천
     # situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])
