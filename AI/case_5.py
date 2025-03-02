@@ -3,7 +3,8 @@ import os
 import requests
 import json
 
-#from utils.deduplicate_sentence import deduplicate_sentences
+
+# from utils.deduplicate_sentence import deduplicate_sentences
 # 중복 방지 -> 함수 추가했습니다.
 def deduplicate_sentences(text):
     text = text.strip()
@@ -22,6 +23,7 @@ def deduplicate_sentences(text):
             return new_text[:half].strip()
 
     return new_text
+
 
 # 사용자 설정 글 제안 AI
 def clova_ai_glee(prompt: str) -> str:

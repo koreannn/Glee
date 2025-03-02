@@ -7,7 +7,8 @@ from loguru import logger
 from AI.utils.get_headers_payloads import get_headers_payloads
 from AI.utils.get_headers_payloads import get_headers_payloads
 from app.core.settings import settings
-#from AI.utils.deduplicate_sentence import deduplicate_sentences
+
+# from AI.utils.deduplicate_sentence import deduplicate_sentences
 
 
 # 중복 방지 -> 함수 추가했습니다.
