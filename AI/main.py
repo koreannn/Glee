@@ -1,38 +1,40 @@
 import sys
 import os
 
-
-def get_user_choice():
-    print("사진 첨부 OR 사진 미 첨부")
-    print("1. 사진 첨부 (OCR 처리)")
-    print("2. 사진 첨부하지 않음 (직접 텍스트 입력)")
-    choice = input("선택 (1 또는 2): ")
-    return choice.strip()
+from loguru import logger
+# def get_user_choice():
+#     print("사진 첨부 OR 사진 미 첨부")
+#     print("1. 사진 첨부 (OCR 처리)")
+#     print("2. 사진 첨부하지 않음 (직접 텍스트 입력)")
+#     choice = input("선택 (1 또는 2): ")
+#     return choice.strip()
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from loguru import logger
+# from loguru import logger
 
-# from AI.services.videosearch_service import VideoSearchService
+# # from AI.services.videosearch_service import VideoSearchService
 
-from ocr_v2 import (
-    CLOVA_AI_Situation_Summary,
-    CLOVA_AI_Title_Suggestions,
-    CLOVA_AI_Reply_Suggestions,
-    CLOVA_AI_New_Reply_Suggestions,
-    CLOVA_AI_Style_Analysis,
-    analyze_situation,
-    analyze_situation_accent_purpose,
-    generate_suggestions_situation,
-    generate_reply_suggestions_accent_purpose,
-    generate_reply_suggestions_detail,
-    CLOVA_OCR,
-    generate_suggestions_situation,
-    generate_reply_suggestions_accent_purpose,
-    generate_reply_suggestions_detail,
-)
-from AI.services.title_suggestion import CLOVA_AI_Title_Suggestions
+# from ocr_v2 import (
+#     CLOVA_AI_Situation_Summary,
+#     CLOVA_AI_Title_Suggestions,
+#     CLOVA_AI_Reply_Suggestions,
+#     CLOVA_AI_New_Reply_Suggestions,
+#     CLOVA_AI_Style_Analysis,
+#     analyze_situation,
+#     analyze_situation_accent_purpose,
+#     generate_suggestions_situation,
+#     generate_reply_suggestions_accent_purpose,
+#     generate_reply_suggestions_detail,
+#     CLOVA_OCR,
+#     generate_suggestions_situation,
+#     generate_reply_suggestions_accent_purpose,
+#     generate_reply_suggestions_detail,
+# )
+# from AI.services.Generation.title_suggestion import CLOVA_AI_Title_Suggestions
+from AI.services.Generation.reply_seggestion import ReplySuggestion
+from AI.services.OCR.get_ocr_text import CLOVA_OCR
 
 
 def main():
@@ -52,9 +54,28 @@ def main():
     # generate_reply_suggestions_accent_purpose("아, 자고싶다.", "친절하게", "카카오톡")
     # generate_reply_suggestions_detail("아, 자고싶다.", "친절하게", "카카오톡", "자고싶다는 말을 친절하고 차분하게 전달하고싶어요")
 
+    # reply_suggestion = ReplySuggestion()
+    
+    # reply_suggestion.generate_basic_reply("아, 자고싶다.")
+    # reply_suggestion.generate_detailed_reply("아, 자고싶다.", "친절하게", "카카오톡", "자고싶다는 말을 친절하고 차분하게 전달하고싶어요")
     """
     OCR 테스트
     """
+    image_files = []
+    test_images = ["./AI/OCR_Test1.png", "./AI/OCR_Test2.png", "./AI/OCR_Test3.png", "./AI/OCR_Test4.png"]
+    
+    for image_path in test_images:
+        try:
+            with open(image_path, "rb") as f:
+                file_content = f.read()
+                image_files.append((image_path, file_content))
+        except Exception as e:
+            logger.error(f"파일 읽기 오류({image_path}): {e}")
+            continue
+    
+    ocr_text = CLOVA_OCR(image_files)
+    print(ocr_text)
+    
     # image_files = []
     # test_images = ["./AI/OCR_Test1.png", "./AI/OCR_Test2.png", "./AI/OCR_Test3.png", "./AI/OCR_Test4.png"]
 
@@ -85,7 +106,6 @@ def main():
     # analyze_situation_accent_purpose(image_files)
 
     # test3: 이미지 -> 답변 추천
-    print(generate_suggestions_situation("아, 자고싶다."))
 
     # # test4: 상황+말투+용도 -> 새로운 답변 추천
     # situation, accent, purpose = Situation_Accent_Purpose(["./OCR_Test1.png","./OCR_Test2.png","./OCR_Test3.png","./OCR_Test4.png"])

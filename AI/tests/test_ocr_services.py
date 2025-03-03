@@ -15,6 +15,10 @@ from ..ocr_v2 import (
     CLOVA_OCR,
 )
 
+'''
+python3 -m pytest AI/tests/ -v: 더 자세한 로그를 보고싶을떄 (verbose)
+python3 -m pytest AI/tests/ -v -s: 로깅 정보를 함께 보고싶을 때
+'''
 
 @pytest.fixture
 def test_image_files():
@@ -38,7 +42,7 @@ def test_image_files():
     return image_files
 
 
-def test_clova_ocr(test_image_files):
+def test_clova_ocr(test_image_files): 
     """OCR 기능 테스트"""
     result = CLOVA_OCR(test_image_files)
     assert result != "", "OCR 결과가 비어있지 않아야 합니다"
