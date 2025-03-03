@@ -428,7 +428,7 @@ class ReplySuggestionAgent:
             else:
                 suggestions = clova_ai_new_reply_suggestions(input_text)
             if suggestions and len(suggestions[0].strip()) < 10 and retry < self.max_retries:
-                input_text += "\n좀 더 구체적으로, 길이를 늘려서 답변해줘."
+                input_text += "\n좀 더 구체적으로, 길이를 늘려서 답장해줘."
                 retry += 1
                 continue
             else:
