@@ -34,14 +34,13 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
 
     # 입력된 파일 수를 로그에 기록
     logger.info(f"총 {len(image_files)}개의 파일을 처리합니다.")
-    
-    
+
     image_tuples = []
     for file_path in image_files:
-        with open(file_path, "rb") as f: # read binary: 바이너리로 읽기 -> 파일 내용을 바이트 형식으로 읽음
-            image_data = f.read() # 바이트 값
+        with open(file_path, "rb") as f:  # read binary: 바이너리로 읽기 -> 파일 내용을 바이트 형식으로 읽음
+            image_data = f.read()  # 바이트 값
             image_tuples.append((file_path, image_data))
-            
+
     for file_name, file_data in image_tuples:
         file_ext = file_name.split(".")[-1].lower()
 

@@ -10,18 +10,18 @@ from app.core.settings import settings
 
 from AI.utils.deduplicate_sentence import deduplicate_sentences
 
+
 class TitleSuggestion:
     def __init__(self):
         self.BASE_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
         self.BEARER_TOKEN = os.getenv("CLOVA_AI_BEARER_TOKEN")
         self.REQUEST_ID = os.getenv("CLOVA_REQ_ID_TITLE")
-        
+
         if not self.BEARER_TOKEN or not self.REQUEST_ID:
             self.BEARER_TOKEN = settings.CLOVA_AI_BEARER_TOKEN
             self.REQUEST_ID = settings.CLOVA_REQ_ID_TITLE
-        
+
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
-        
 
     def _generate_title_suggestions(self, input_text: str) -> list[str]:
         # (2) .env에서 불러오기
