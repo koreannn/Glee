@@ -39,6 +39,9 @@ jobs:
     needs: docker_image_push
     runs-on: ubuntu-latest
     steps:
+      - name: Inject .env file
+        run: echo "${{ secrets.BACKEND_ENV }}" > ./.env
+
       - name: Upload .env file to server
         uses: appleboy/scp-action@master
         with:
