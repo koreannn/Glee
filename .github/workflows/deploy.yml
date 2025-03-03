@@ -2,7 +2,12 @@ name: Deploy to Ncloud
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 
 jobs:
   docker_image_push:
@@ -14,7 +19,7 @@ jobs:
       - name: Inject .env file
         run: echo "${{ secrets.BACKEND_ENV }}" > ./.env
 
-      - name: Set up Docker Buildx
+      - name: Set up Docker Build
         uses: docker/setup-buildx-action@v2
 
       # ncloud 컨테이너 레지스트리 로그인 (Secrets에 설정된 값을 사용)
@@ -40,7 +45,10 @@ jobs:
     needs: docker_image_push  # 빌드 및 푸시 작업이 완료된 후 실행
     runs-on: ubuntu-latest
     steps:
-      - name: Connect via SSH and deploy
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Connect via SSH and Deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
@@ -52,15 +60,21 @@ jobs:
             # 도커 로그인
             docker login ${{ secrets.CONTAINER_REGISTRY_URL }} --username ${{ secrets.NCP_ACCESS_KEY }} --password ${{ secrets.NCP_SECRET_KEY }}
 
-            # 새로운 이미지 Pull (태그명은 실제 사용한 태그로 변경)
+            # 새로운 FastAPI 컨테이너 이미지 가져오기
             docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
 
-            # 기존 컨테이너 중 해당 애플리케이션만 종료하도록 container 이름이나 ID 지정 (예시로 'dap-dap-back' 사용)
+            # 기존 FastAPI 컨테이너 중단 및 삭제
             docker stop dap-dap-back || true
             docker rm dap-dap-back || true
 
-            # 새로운 컨테이너 실행 (필요한 포트 매핑 및 컨테이너 이름 설정)
-            docker run -d --name dap-dap-back -p 8000:8000 ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
+            # 네트워크 생성 (이미 존재하면 무시)
+            docker network create app_network || true
+
+            # FastAPI 컨테이너 실행 (MongoDB 컨테이너는 유지)
+            docker run -d \
+              --name dap-dap-back \
+              --network app_network \
+              -p 8000:8000 \
 
             # 사용하지 않는 이미지 정리
             docker image prune -f
