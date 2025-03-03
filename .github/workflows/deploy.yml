@@ -75,6 +75,7 @@ jobs:
               --name dap-dap-back \
               --network app_network \
               -p 8000:8000 \
+            ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
 
             # 사용하지 않는 이미지 정리
             docker image prune -f
