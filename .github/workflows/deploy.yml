@@ -14,9 +14,10 @@ jobs:
       - name: Inject .env file
         run: echo "${{ secrets.BACKEND_ENV }}" > ./.env
 
-      - name: Set up Docker Build
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # ncloud 컨테이너 레지스트리 로그인 (Secrets에 설정된 값을 사용)
       - name: Login to Ncloud Registry
         uses: docker/login-action@v3
         with:
@@ -36,22 +37,9 @@ jobs:
 
   pull_deploy:
     name: Connect server via SSH and update container
-    needs: docker_image_push
+    needs: docker_image_push  # 빌드 및 푸시 작업이 완료된 후 실행
     runs-on: ubuntu-latest
     steps:
-      - name: Inject .env file
-        run: echo "${{ secrets.BACKEND_ENV }}" > ./.env
-
-      - name: Upload .env file to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DEPLOYMENT_HOST }}
-          username: ${{ secrets.DEPLOYMENT_USERNAME }}
-          password: ${{ secrets.DEPLOYMENT_PASSWORD }}
-          port: ${{ secrets.DEPLOYMENT_PORT }}
-          source: ".env"
-          target: "/home/${{ secrets.DEPLOYMENT_USERNAME }}/glee-back/"
-
       - name: Connect via SSH and deploy
         uses: appleboy/ssh-action@master
         with:
@@ -60,20 +48,19 @@ jobs:
           password: ${{ secrets.DEPLOYMENT_PASSWORD }}
           port: ${{ secrets.DEPLOYMENT_PORT }}
           script: |
-            # 올바른 디렉토리로 이동 후 실행
-            cd /home/${{ secrets.DEPLOYMENT_USERNAME }}/glee-back/
-          
+
             # 도커 로그인
             docker login ${{ secrets.CONTAINER_REGISTRY_URL }} --username ${{ secrets.NCP_ACCESS_KEY }} --password ${{ secrets.NCP_SECRET_KEY }}
-            
-            # 새로운 이미지 Pull
-            docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
-            
-            # 기존 컨테이너 종료 및 삭제
-            docker-compose down || true
 
-            # Docker Compose 실행 (환경 변수 적용)
-            docker-compose up -d
-            
+            # 새로운 이미지 Pull (태그명은 실제 사용한 태그로 변경)
+            docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
+
+            # 기존 컨테이너 중 해당 애플리케이션만 종료하도록 container 이름이나 ID 지정 (예시로 'dap-dap-back' 사용)
+            docker stop dap-dap-back || true
+            docker rm dap-dap-back || true
+
+            # 새로운 컨테이너 실행 (필요한 포트 매핑 및 컨테이너 이름 설정)
+            docker run -d --name dap-dap-back -p 8000:8000 ${{ secrets.CONTAINER_REGISTRY_URL }}/dap-dap-back:latest
+
             # 사용하지 않는 이미지 정리
             docker image prune -f
