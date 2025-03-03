@@ -49,7 +49,7 @@ jobs:
           username: ${{ secrets.DEPLOYMENT_USERNAME }}
           password: ${{ secrets.DEPLOYMENT_PASSWORD }}
           port: ${{ secrets.DEPLOYMENT_PORT }}
-          source: ".env docker-compose.yml"
+          source: ".env"
           target: "/home/${{ secrets.DEPLOYMENT_USERNAME }}/glee-back/"
 
       - name: Connect via SSH and deploy
