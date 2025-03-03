@@ -14,11 +14,15 @@ from ..ocr_v2 import (
     generate_reply_suggestions_detail,
     CLOVA_OCR,
 )
+from unittest.mock import patch, Mock
+from fastapi import UploadFile
+import io
 
-'''
+"""
 python3 -m pytest AI/tests/ -v: 더 자세한 로그를 보고싶을떄 (verbose)
 python3 -m pytest AI/tests/ -v -s: 로깅 정보를 함께 보고싶을 때
-'''
+"""
+
 
 @pytest.fixture
 def test_image_files():
@@ -42,7 +46,7 @@ def test_image_files():
     return image_files
 
 
-def test_clova_ocr(test_image_files): 
+def test_clova_ocr(test_image_files):
     """OCR 기능 테스트"""
     result = CLOVA_OCR(test_image_files)
     assert result != "", "OCR 결과가 비어있지 않아야 합니다"
@@ -72,12 +76,7 @@ def test_reply_suggestions():
 
 def test_new_reply_suggestions():
     """새로운 답변 추천 기능 테스트"""
-    result = CLOVA_AI_New_Reply_Suggestions(
-        "배고픈 상황",
-        "친절하게",
-        "카카오톡",
-        "친절하지만 퉁명스럽게 말해주세요"
-    )
+    result = CLOVA_AI_New_Reply_Suggestions("배고픈 상황", "친절하게", "카카오톡", "친절하지만 퉁명스럽게 말해주세요")
     assert isinstance(result, list), "결과가 리스트 형태여야 합니다"
     assert len(result) > 0, "최소 하나 이상의 답변이 생성되어야 합니다"
 
@@ -111,9 +110,7 @@ def test_generate_suggestions_situation():
 
 def test_generate_reply_suggestions_accent_purpose():
     """상황/말투/용도 기반 답변 생성 테스트"""
-    suggestions, title = generate_reply_suggestions_accent_purpose(
-        "아, 자고싶다.", "친절하게", "카카오톡"
-    )
+    suggestions, title = generate_reply_suggestions_accent_purpose("아, 자고싶다.", "친절하게", "카카오톡")
     assert isinstance(suggestions, list), "suggestions가 리스트여야 합니다"
     assert title != "", "제목이 생성되어야 합니다"
 
@@ -121,10 +118,44 @@ def test_generate_reply_suggestions_accent_purpose():
 def test_generate_reply_suggestions_detail():
     """상세 정보 포함 답변 생성 테스트"""
     suggestions, title = generate_reply_suggestions_detail(
-        "아, 자고싶다.",
-        "친절하게",
-        "카카오톡",
-        "자고싶다는 말을 친절하고 차분하게 전달하고싶어요"
+        "아, 자고싶다.", "친절하게", "카카오톡", "자고싶다는 말을 친절하고 차분하게 전달하고싶어요"
     )
     assert isinstance(suggestions, list), "suggestions가 리스트여야 합니다"
     assert title != "", "제목이 생성되어야 합니다"
+
+
+class TestOCRService:
+    @pytest.fixture
+    def mock_upload_files(self):
+        file1 = Mock(spec=UploadFile)
+        file1.filename = "test1.jpg"
+        file1.file = io.BytesIO(b"fake image data 1")
+
+        file2 = Mock(spec=UploadFile)
+        file2.filename = "test2.jpg"
+        file2.file = io.BytesIO(b"fake image data 2")
+
+        return [file1, file2]
+
+    @patch("requests.post")
+    def test_clova_ocr_success(self, mock_post, mock_upload_files, mock_response):
+        # Given
+        mock_response.text = '{"images":[{"fields":[{"text":"테스트 텍스트"}]}]}'
+        mock_post.return_value = mock_response
+
+        # When
+        result = CLOVA_OCR(mock_upload_files)
+
+        # Then
+        assert isinstance(result, str)
+        assert "테스트 텍스트" in result
+        mock_post.assert_called()
+
+    @patch("requests.post")
+    def test_clova_ocr_error(self, mock_post, mock_upload_files):
+        # Given
+        mock_post.return_value = Mock(status_code=400, text="에러 발생")
+
+        # When/Then
+        with pytest.raises(Exception):
+            CLOVA_OCR(mock_upload_files)

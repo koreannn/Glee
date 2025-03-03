@@ -9,12 +9,14 @@ from dotenv import load_dotenv
 import re
 import requests
 from loguru import logger
-#from app.core.settings import settings
+
+# from app.core.settings import settings
 from pathlib import Path
 
 load_dotenv()  # .env 파일 로드
 
 ## CLOVA_REQ_ID_glee_agent 추가(노션에 값 추가했습니다!)
+
 
 # 중복 문장 제거
 def deduplicate_sentences(text):
@@ -31,6 +33,7 @@ def deduplicate_sentences(text):
             return new_text[:half].strip()
     return new_text
 
+
 # ----------------------------
 ## API 호출 함수들
 # 1) CLOVA OCR 호출 함수
@@ -45,8 +48,8 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
     if not URL or not SECRET_KEY:
         logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
         return ""
-    
-    #if not URL or not SECRET_KEY:
+
+    # if not URL or not SECRET_KEY:
     #    URL = settings.CLOVA_OCR_URL
     #    SECRET_KEY = settings.CLOVA_OCR_SECRET_KEY
     #    logger.info(f"settings에서 읽은 URL: {URL}")
@@ -92,6 +95,7 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
 
     return total_extracted_text.strip()
 
+
 # 2) 상황 요약 함수
 def clova_ai_reply_summary(conversation: str) -> str:
     url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
@@ -101,12 +105,12 @@ def clova_ai_reply_summary(conversation: str) -> str:
         "Authorization": f"Bearer {bearer_token}",
         "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
         "Content-Type": "application/json",
-        "Accept": "text/event-stream"
+        "Accept": "text/event-stream",
     }
     payload = {
         "messages": [
             {"role": "system", "content": "사용자가 입력한 내용을 보고 상황을 자세하게 요약해줘."},
-            {"role": "user", "content": conversation}
+            {"role": "user", "content": conversation},
         ],
         "topP": 0.8,
         "topK": 0,
@@ -115,14 +119,14 @@ def clova_ai_reply_summary(conversation: str) -> str:
         "repeatPenalty": 1.0,
         "stopBefore": [],
         "includeAiFilters": True,
-        "seed": 0
+        "seed": 0,
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
         for line in response.iter_lines(decode_unicode=True):
             if line and line.startswith("data:"):
-                data_str = line[len("data:"):].strip()
+                data_str = line[len("data:") :].strip()
                 try:
                     data_json = json.loads(data_str)
                     token = data_json.get("message", {}).get("content", "")
@@ -134,25 +138,23 @@ def clova_ai_reply_summary(conversation: str) -> str:
         logger.error(f"Error: {response.status_code} - {response.text}")
         return ""
 
+
 # 제목 함수
 def clova_ai_title_suggestions(input_text: str) -> list[str]:
     base_url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
     request_id = os.getenv("CLOVA_REQ_ID_TITLE")
     suggestions = []
-    system_msg = ("사용자가 입력한 내용에 맞는 제목을 작성해줘.\n 이때 간결하고 짧게 제목만 출력해줘.\n 제목은 10글자 이내로 요약해서 작성해줘")
+    system_msg = "사용자가 입력한 내용에 맞는 제목을 작성해줘.\n 이때 간결하고 짧게 제목만 출력해줘.\n 제목은 10글자 이내로 요약해서 작성해줘"
     for _ in range(3):
         headers = {
             "Authorization": f"Bearer {bearer_token}",
             "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
             "Content-Type": "application/json",
-            "Accept": "text/event-stream"
+            "Accept": "text/event-stream",
         }
         payload = {
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": input_text}
-            ],
+            "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": input_text}],
             "topP": 0.8,
             "topK": 0,
             "maxTokens": 30,
@@ -160,14 +162,14 @@ def clova_ai_title_suggestions(input_text: str) -> list[str]:
             "repeatPenalty": 5.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": 0
+            "seed": 0,
         }
         response = requests.post(base_url, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             title_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
@@ -181,7 +183,8 @@ def clova_ai_title_suggestions(input_text: str) -> list[str]:
             suggestions.append(f"Error: {response.status_code} - {response.text}")
     return suggestions
 
-# 글 제안 함수 
+
+# 글 제안 함수
 def clova_ai_reply_suggestions(situation_text: str) -> list[str]:
     base_url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
@@ -200,13 +203,10 @@ def clova_ai_reply_suggestions(situation_text: str) -> list[str]:
             "Authorization": f"Bearer {bearer_token}",
             "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
             "Content-Type": "application/json",
-            "Accept": "text/event-stream"
+            "Accept": "text/event-stream",
         }
         payload = {
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": situation_text}
-            ],
+            "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": situation_text}],
             "topP": 1,
             "topK": 0,
             "maxTokens": 350,
@@ -214,14 +214,14 @@ def clova_ai_reply_suggestions(situation_text: str) -> list[str]:
             "repeatPenalty": 3.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": seed
+            "seed": seed,
         }
         response = requests.post(base_url, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             reply_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
@@ -236,11 +236,12 @@ def clova_ai_reply_suggestions(situation_text: str) -> list[str]:
         logger.info(f"생성된 내용:\n{reply_text}")
     return suggestions
 
+
 # 글 제안 함수(2)
 def clova_ai_new_reply_suggestions(
     situation_text: str, accent: str = None, purpose: str = None, detailed_description: str = "없음"
 ) -> list[str]:
-    
+
     base_url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
     bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
     request_id = os.getenv("CLOVA_REQ_ID_glee_agent")
@@ -264,13 +265,10 @@ def clova_ai_new_reply_suggestions(
             "Authorization": f"Bearer {bearer_token}",
             "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
             "Content-Type": "application/json",
-            "Accept": "text/event-stream"
+            "Accept": "text/event-stream",
         }
         payload = {
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": input_text}
-            ],
+            "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": input_text}],
             "topP": 1,
             "topK": 0,
             "maxTokens": 350,
@@ -278,14 +276,14 @@ def clova_ai_new_reply_suggestions(
             "repeatPenalty": 3.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": seed
+            "seed": seed,
         }
         response = requests.post(base_url, headers=headers, json=payload, stream=True)
         if response.status_code == 200:
             reply_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
@@ -300,6 +298,7 @@ def clova_ai_new_reply_suggestions(
         logger.info(f"느낌을 파악하고 생성한 결과:\n{reply_text}")
     return suggestions
 
+
 # 상황 말투 용도 파악 함수
 def clova_ai_style_analysis(conversation: str) -> str:
 
@@ -310,16 +309,12 @@ def clova_ai_style_analysis(conversation: str) -> str:
         "Authorization": f"Bearer {bearer_token}",
         "X-NCP-CLOVASTUDIO-REQUEST-ID": request_id,
         "Content-Type": "application/json",
-        "Accept": "text/event-stream"
-
+        "Accept": "text/event-stream",
     }
     system_msg = "사용자가 입력한 내용을 보고 상황, 말투, 용도를 각각 자세하게 출력해줘."
 
     payload = {
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": conversation}
-        ],
+        "messages": [{"role": "system", "content": system_msg}, {"role": "user", "content": conversation}],
         "topP": 0.8,
         "topK": 0,
         "maxTokens": 256,
@@ -327,14 +322,14 @@ def clova_ai_style_analysis(conversation: str) -> str:
         "repeatPenalty": 5.0,
         "stopBefore": [],
         "includeAiFilters": True,
-        "seed": 0
+        "seed": 0,
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
     if response.status_code == 200:
         result_text = ""
         for line in response.iter_lines(decode_unicode=True):
             if line and line.startswith("data:"):
-                data_str = line[len("data:"):].strip()
+                data_str = line[len("data:") :].strip()
                 try:
                     data_json = json.loads(data_str)
                     token = data_json.get("message", {}).get("content", "")
@@ -345,6 +340,7 @@ def clova_ai_style_analysis(conversation: str) -> str:
     else:
         logger.warning(f"Error: {response.status_code} - {response.text}")
         return "기본 말투, 일반적인 용도"
+
 
 # 파싱
 def parse_style_analysis(result: str):
@@ -365,6 +361,7 @@ def parse_style_analysis(result: str):
                 purpose = parts[1].strip()
     return situation, accent, purpose
 
+
 def parse_suggestion(suggestion: str):
     cleaned = suggestion.strip()
     cleaned = re.sub(r"^(제목|답변)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
@@ -375,11 +372,13 @@ def parse_suggestion(suggestion: str):
         cleaned = cleaned[:half].strip()
     return cleaned, ""
 
+
 # ----------------------------
 # Glee 에이전트 클래스
 class OcrAgent:
     def __init__(self, max_retries=2):
         self.max_retries = max_retries
+
     def run(self, image_paths: list[tuple[str, bytes]]):
         aggregated_text = []
         for img in image_paths:
@@ -395,9 +394,11 @@ class OcrAgent:
                     break
         return "\n".join(aggregated_text)
 
+
 class SummarizerAgent:
     def __init__(self, max_retries=2):
         self.max_retries = max_retries
+
     def run(self, input_text: str):
         retry = 0
         summary = ""
@@ -411,14 +412,17 @@ class SummarizerAgent:
                 break
         return summary
 
+
 class TitleSuggestionAgent:
     def run(self, input_text: str):
         return clova_ai_title_suggestions(input_text)
+
 
 class ReplySuggestionAgent:
     def __init__(self, variant="old", max_retries=2):
         self.variant = variant
         self.max_retries = max_retries
+
     def run(self, input_text: str):
         retry = 0
         suggestions = []
@@ -435,16 +439,19 @@ class ReplySuggestionAgent:
                 break
         return suggestions
 
+
 class StyleAnalysisAgent:
     def run(self, input_text: str):
         result = clova_ai_style_analysis(input_text)
         situation, accent, purpose = parse_style_analysis(result)
         return result, situation, accent, purpose
 
+
 class FeedbackAgent:
     def __init__(self, min_length=10, max_retries=2):
         self.min_length = min_length
         self.max_retries = max_retries
+
     def check_and_improve(self, output: str, original_input: str, agent):
         retries = 0
         improved_output = output
@@ -453,6 +460,7 @@ class FeedbackAgent:
             improved_output = agent.run(improved_input)
             retries += 1
         return improved_output
+
 
 class OrchestratorAgent:
     def __init__(self):
@@ -463,6 +471,7 @@ class OrchestratorAgent:
         self.reply_agent_new = ReplySuggestionAgent(variant="new")
         self.style_agent = StyleAnalysisAgent()
         self.feedback_agent = FeedbackAgent()
+
     def run_reply_mode(self, input_text: str):
         summary = self.summarizer_agent.run(input_text)
         summary = self.feedback_agent.check_and_improve(summary, input_text, self.summarizer_agent)
@@ -474,22 +483,26 @@ class OrchestratorAgent:
             "accent": "기본 말투",
             "purpose": "일반 답변",
             "titles": titles,
-            "replies": replies
+            "replies": replies,
         }
+
     def run_style_mode(self, input_text: str):
         style_result, situation, tone, usage = self.style_agent.run(input_text)
         style_result = self.feedback_agent.check_and_improve(style_result, input_text, self.style_agent)
         titles = self.title_agent.run(style_result)
         replies = self.reply_agent_new.run(style_result)
-        replies = [self.feedback_agent.check_and_improve(reply, style_result, self.reply_agent_new) for reply in replies]
+        replies = [
+            self.feedback_agent.check_and_improve(reply, style_result, self.reply_agent_new) for reply in replies
+        ]
         return {
             "situation": situation,
             "accent": tone,
             "purpose": usage,
             "titles": titles,
             "replies": replies,
-            "style_analysis": style_result
+            "style_analysis": style_result,
         }
+
     def run_manual_mode(self, situation: str, accent: str, purpose: str, details: str):
         prompt = (
             f"상황: {situation}\n"
@@ -507,8 +520,9 @@ class OrchestratorAgent:
             "purpose": purpose,
             "titles": titles,
             "replies": replies,
-            "prompt": prompt
+            "prompt": prompt,
         }
+
 
 #####################################################################
 # -------------------------------------------------------------------
@@ -519,6 +533,7 @@ def analyze_situation(image_files: list[tuple[str, bytes]]) -> str:
     image2text = CLOVA_OCR(image_files)
     situation_string = clova_ai_reply_summary(image2text)
     return situation_string
+
 
 # -------------------------------------------------------------------
 # [2] 이미지파일 (최대 4개) 입력 -> 상황, 말투, 용도를 뱉어내는 함수
@@ -531,12 +546,14 @@ def analyze_situation_accent_purpose(image_files: list[tuple[str, bytes]]) -> tu
     _, tone, usage = parse_style_analysis(style_result)
     return situation, tone, usage
 
+
 # -------------------------------------------------------------------
 # [3] 상황만을 기반으로 글 제안을 생성하는 함수
 def generate_suggestions_situation(situation: str) -> tuple[list[str], list[str]]:
     agent = OrchestratorAgent()
     result = agent.run_reply_mode(situation)
     return result["replies"], result["titles"]
+
 
 # -------------------------------------------------------------------
 # [4] 상황, 말투, 용도를 기반으로 글 제안을 생성하는 함수
@@ -545,9 +562,12 @@ def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpo
     result = agent.run_manual_mode(situation, accent, purpose, "")
     return result["replies"], result["titles"]
 
+
 # -------------------------------------------------------------------
 # [5] 상황, 말투, 용도, 상세 설명을 기반으로 글 제안을 생성하는 함수
-def generate_reply_suggestions_detail(situation: str, accent: str, purpose: str, detailed_description: str) -> tuple[list[str], list[str]]:
+def generate_reply_suggestions_detail(
+    situation: str, accent: str, purpose: str, detailed_description: str
+) -> tuple[list[str], list[str]]:
     agent = OrchestratorAgent()
     result = agent.run_manual_mode(situation, accent, purpose, detailed_description)
     return result["replies"], result["titles"]

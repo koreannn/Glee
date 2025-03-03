@@ -7,6 +7,7 @@ import requests
 from loguru import logger
 from app.core.settings import settings
 
+
 def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
     """
     여러 이미지 파일 경로 리스트를 받아, 각 파일에 대해 OCR 요청을 개별적으로 보내고,

@@ -15,7 +15,7 @@ SYSTEM_PROMPT:
   '''
 
 HYPER_PARAM:
-  topP: 1 
+  topP: 1
   topK: 0
   maxTokens: 500
   temperature: 0.9
