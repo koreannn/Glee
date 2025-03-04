@@ -241,3 +241,23 @@ async def test_get_recommend_suggestion(exists_suggestion: SuggesterDocument) ->
     assert response.status_code == 200
     assert response.json()["suggestions"] != []
     assert response.json()["suggestions"][0]["id"] == str(exists_suggestion.id)
+
+
+@pytest.mark.asyncio
+async def test_search(exists_suggestion: SuggesterDocument, auth_header: dict[str, str]) -> None:
+    """본문에 'Test' 단어가 포함된 제안 검색 테스트"""
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get(
+            "/suggester/search",
+            params={"query": "Test"},  # ✅ 검색할 단어
+            headers=auth_header,
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "suggestions" in data, "Response should contain 'suggestions' key"
+    assert len(data["suggestions"]) > 0, "At least one suggestion should be found"
+
+    for suggestion in data["suggestions"]:
+        assert "Test" in suggestion["suggestion"], "Suggestion content should contain 'Test'"

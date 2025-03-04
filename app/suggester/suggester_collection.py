@@ -104,3 +104,11 @@ class SuggesterCollection:
     async def get_recommend_documents(cls) -> list[dict[Any, Any]]:
         cursor = cls._collection.find({"recommend": True})
         return await cursor.to_list(length=100)  # 최대 100개 가져오기
+
+    @classmethod
+    async def find_by_text(cls, query: str, user_id: ObjectId) -> list[dict[Any, Any]]:
+        """본문에 특정 텍스트가 포함된 문서 검색"""
+        cursor = cls._collection.find(
+            {"user_id": user_id, "suggestion": {"$regex": query, "$options": "i"}}
+        )
+        return await cursor.to_list(length=100)

@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Query
 
 from AI.ocr_v2 import analyze_situation, analyze_situation_accent_purpose
 from app.history.history_service import HistoryService
@@ -16,7 +16,7 @@ from app.suggester.suggester_response import (
     DeleteSuggestionResponse,
     GenerateSuggestion,
     GenerateSuggestionsResponse,
-    SuggestionsResponse,
+    SuggestionsResponse, SearchSuggestionResponse,
 )
 from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
@@ -26,6 +26,36 @@ from app.utils.models.suggestion import Suggestion
 
 router = APIRouter(prefix="/suggester", tags=["suggester"])
 logger = logging.getLogger(__name__)
+
+
+
+@router.get("/search", response_model=SearchSuggestionResponse, summary="특정 단어가 포함된 제안 검색")
+async def search_suggestions(
+        query: str = Query(..., description="검색할 단어"),
+        user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
+) -> SearchSuggestionResponse:
+    """본문에 특정 단어가 포함된 제안을 검색하는 API"""
+    logger.info(f"User {user.id} is searching for suggestions containing '{query}'")
+
+    suggestions = await SuggesterService.find_suggestions_by_text(query, user.id)
+
+    if not suggestions:
+        raise HTTPException(status_code=404, detail="No suggestions found")
+
+    response = [
+        SuggestionResponse(
+            id=str(suggestion.id),
+            title=suggestion.title,
+            tags=[],
+            suggestion=suggestion.suggestion,
+            updated_at=suggestion.updated_at,
+            created_at=suggestion.created_at,
+        )
+        for suggestion in suggestions
+    ]
+
+    return SearchSuggestionResponse(suggestions=response)
+
 
 
 @router.get("/recommend", response_model=SuggestionsResponse)
@@ -305,3 +335,8 @@ async def update_suggestion_tag(
         updated_at=updated_suggestion.updated_at,
         created_at=updated_suggestion.created_at,
     )
+
+
+
+
+
