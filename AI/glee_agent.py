@@ -770,35 +770,35 @@ def generate_reply_suggestions_detail(situation: str, accent: str, purpose: str,
 #- 너 진짜 너무한다. 빌린 돈 얼른 갚아라. 이번 주 안에 해결 못하면 나도 가만히 안 있을 거다.
 #- "너 자꾸 이렇게 내 돈 안갚으면 나도 가만히 있지 않을거야. 이번주내로 꼭 보내."
 
-if __name__ == "__main__":
-    test_image_path = r"C:\Users\james\J_Ai_Lab\glee_agent\test222.png"
-    with open(test_image_path, "rb") as f:
-        image_bytes = f.read()
-    # 파일 이름과 bytes를 튜플로 전달
-    image_files = [(os.path.basename(test_image_path), image_bytes)]
+#if __name__ == "__main__":
+#    test_image_path = r"C:\Users\james\J_Ai_Lab\glee_agent\test222.png"
+#    with open(test_image_path, "rb") as f:
+#        image_bytes = f.read()
+#    # 파일 이름과 bytes를 튜플로 전달
+#    image_files = [(os.path.basename(test_image_path), image_bytes)]
     
     # OCR 및 상황 분석 테스트
-    situation_summary = analyze_situation(image_files)
-    print("=== 이미지 기반 상황 요약 ===")
-    print(situation_summary)
+#    situation_summary = analyze_situation(image_files)
+#    print("=== 이미지 기반 상황 요약 ===")
+#    print(situation_summary)
     
     # 스타일 분석 테스트 (상황, 말투, 용도)
-    situation, tone, usage = analyze_situation_accent_purpose(image_files)
-    print("\n=== 이미지 기반 스타일 분석 ===")
-    print("상황:", situation)
-    print("말투:", tone)
-    print("용도:", usage)
+#    situation, tone, usage = analyze_situation_accent_purpose(image_files)
+#    print("\n=== 이미지 기반 스타일 분석 ===")
+#    print("상황:", situation)
+#    print("말투:", tone)
+#    print("용도:", usage)
     
     # 추가 디테일
-    detailed_description = "스스로 정보를 찾아서 알아서 잘했으면 좋겠음"
+  #  detailed_description = "스스로 정보를 찾아서 알아서 잘했으면 좋겠음"
     
     # 상황, 말투, 용도, 디테일 기반 글 제안
-    replies_detail, titles_detail = generate_reply_suggestions_detail(situation, tone, usage, detailed_description)
-    print("\n=== 상황, 말투, 용도, 디테일 기반 글 제안 ===")
-    for i, (title, reply) in enumerate(zip(titles_detail, replies_detail), 1):
-        print(f"[제안 {i}] 제목: {title}")
-        print(f"[제안 {i}] 내용: {reply}")
-        print("-" * 40)
+  #  replies_detail, titles_detail = generate_reply_suggestions_detail(situation, tone, usage, detailed_description)
+  #  print("\n=== 상황, 말투, 용도, 디테일 기반 글 제안 ===")
+  #  for i, (title, reply) in enumerate(zip(titles_detail, replies_detail), 1):
+  #      print(f"[제안 {i}] 제목: {title}")
+  #      print(f"[제안 {i}] 내용: {reply}")
+  #      print("-" * 40)
 
 #[제안 3] 제목: jupyter 오류 해결 방법
 #[제안 3] 내용: "오류 메시지를 알려주시면 더 정확하게 안내해 드릴 수 있을 것 같아요! 그리고 인터넷 검색이나 공식 문서를 참고하시면 문제를 해결하실 수 있을 거예요."
