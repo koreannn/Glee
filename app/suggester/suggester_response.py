@@ -32,6 +32,7 @@ class SuggestionResponse(BaseModel):
 class SuggestionsResponse(BaseModel):
     suggestions: list[SuggestionResponse]
 
+
 class SearchSuggestionResponse(BaseModel):
     suggestions: list[SuggestionResponse]
 

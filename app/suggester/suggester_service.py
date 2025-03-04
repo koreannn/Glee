@@ -90,10 +90,10 @@ class SuggesterService:
         return [SuggesterDocument(**data) for data in data_list]
 
     @staticmethod
-    async def find_suggestions_by_text(query: str, user_id: ObjectId) -> list[SuggesterDocument]:
+    async def find_suggestions_by_text(query: str, user_id: ObjectId) -> list[SuggesterDocument] | None:
         """본문에 특정 텍스트가 포함된 문서 검색"""
-        data_list = await SuggesterCollection.find_by_text(query,user_id)
-        try :
+        data_list = await SuggesterCollection.find_by_text(query, user_id)
+        try:
             return [SuggesterDocument(**data) for data in data_list] if data_list else None
         except:
             raise HTTPException(status_code=404, detail="Suggestion not found")

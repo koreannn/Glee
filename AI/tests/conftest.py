@@ -7,4 +7,5 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 # .env 파일 로드
 from dotenv import load_dotenv
-load_dotenv() 
+
+load_dotenv()

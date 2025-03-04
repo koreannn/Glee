@@ -16,7 +16,8 @@ from app.suggester.suggester_response import (
     DeleteSuggestionResponse,
     GenerateSuggestion,
     GenerateSuggestionsResponse,
-    SuggestionsResponse, SearchSuggestionResponse,
+    SuggestionsResponse,
+    SearchSuggestionResponse,
 )
 from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
@@ -28,11 +29,10 @@ router = APIRouter(prefix="/suggester", tags=["suggester"])
 logger = logging.getLogger(__name__)
 
 
-
 @router.get("/search", response_model=SearchSuggestionResponse, summary="특정 단어가 포함된 제안 검색")
 async def search_suggestions(
-        query: str = Query(..., description="검색할 단어"),
-        user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
+    query: str = Query(..., description="검색할 단어"),
+    user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SearchSuggestionResponse:
     """본문에 특정 단어가 포함된 제안을 검색하는 API"""
     logger.info(f"User {user.id} is searching for suggestions containing '{query}'")
@@ -55,7 +55,6 @@ async def search_suggestions(
     ]
 
     return SearchSuggestionResponse(suggestions=response)
-
 
 
 @router.get("/recommend", response_model=SuggestionsResponse)
@@ -335,8 +334,3 @@ async def update_suggestion_tag(
         updated_at=updated_suggestion.updated_at,
         created_at=updated_suggestion.created_at,
     )
-
-
-
-
-
