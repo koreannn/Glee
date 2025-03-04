@@ -43,3 +43,7 @@ plugins = "pydantic.mypy"
 python_version = ">=3.11,<4.0"
 strict = true
 exclude = 'airflow/.*'
+
+[tool.poetry.group.ai.dependencies]
+youtube-transcript-api = ">=0.6.2,<0.7.0"
+sentence-transformers = ">=2.5.1,<3.0.0"

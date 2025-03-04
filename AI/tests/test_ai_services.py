@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 from typing import List
 
+from loguru import logger
 from AI.services.OCR.get_ocr_text import CLOVA_OCR
 from AI.services.Analysis.analyze_situation import Analyze
 from AI.services.Generation.reply_seggestion import ReplySuggestion
@@ -34,15 +35,15 @@ def services():
     return {"situation": Analyze(), "reply": ReplySuggestion(), "title": TitleSuggestion()}
 
 
-def test_ocr_service(test_image_files):
-    """OCR 서비스 테스트"""
+def test_ocr_service(test_image_files):  # OCR 테스트
+    logger.info("\n1. OCR 텍스트 인식 테스트")
     result = CLOVA_OCR(test_image_files)
     assert isinstance(result, str)
     assert len(result) > 0
 
 
-def test_analyze_situation(test_image_files, services):
-    """상황 분석 테스트"""
+def test_analyze_situation(test_image_files, services):  # 상황 분석 테스트
+    logger.info("\n2. 상황 분석 테스트")
     # OCR 텍스트 추출
     image2text = CLOVA_OCR(test_image_files)
     assert image2text, "OCR 텍스트가 추출되지 않았습니다"
@@ -53,8 +54,8 @@ def test_analyze_situation(test_image_files, services):
     assert len(situation) > 0, "상황 요약이 생성되지 않았습니다"
 
 
-def test_analyze_situation_with_style(test_image_files, services):
-    """상황, 말투, 용도 분석 테스트"""
+def test_analyze_situation_with_style(test_image_files, services):  # 말투, 용도 분석 테스트
+    logger.info("\n3. 말투, 용도 분석 테스트")
     # OCR 텍스트 추출
     image2text = CLOVA_OCR(test_image_files)
     assert image2text, "OCR 텍스트가 추출되지 않았습니다"
@@ -72,8 +73,8 @@ def test_analyze_situation_with_style(test_image_files, services):
     assert len(purpose) > 0
 
 
-def test_generate_suggestions(test_image_files, services):
-    """기본 답변 및 제목 생성 테스트"""
+def test_generate_suggestions(test_image_files, services):  # 상황 -> 답변 생성 테스트
+    logger.info("\n4. 상황 -> 답변 생성 테스트")
     # 상황 분석
     image2text = CLOVA_OCR(test_image_files)
     situation = services["situation"].situation_summary(image2text)
@@ -91,8 +92,8 @@ def test_generate_suggestions(test_image_files, services):
     assert all(isinstance(t, str) for t in titles)
 
 
-def test_generate_detailed_suggestions(test_image_files, services):
-    """상세 답변 생성 테스트"""
+def test_generate_detailed_suggestions(test_image_files, services):  # 상황, 말투, 용도 -> 상세 답변 생성 테스트
+    logger.info("\n5. 상황, 말투, 용도 -> 상세 답변 생성 테스트")
     # 상황 분석
     image2text = CLOVA_OCR(test_image_files)
     situation = services["situation"].situation_summary(image2text)

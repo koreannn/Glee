@@ -78,6 +78,9 @@ class Analyze:
         return "기본 말투", "일반적인 용도"
 
     def situation_summary(self, conversation: str) -> str:  # 상황 요약
+        if not conversation or conversation.strip() == "":
+            return ""
+
         result = self._make_api_request("config_Situation_Summary.yaml", conversation)
         if result:
             result = deduplicate_sentences(result)

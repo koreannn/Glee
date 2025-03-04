@@ -82,5 +82,5 @@ class ReplySuggestion:
         if detailed_description != "없음":
             input_text += f"\n사용자가 추가적으로 제공하는 디테일한 내용: {detailed_description}"
 
-        reply = self._generate_suggestions(input_text, "config_New_Reply_Suggestions.yaml")
+        reply = self._generate_suggestions(input_text, "config_Reply_Suggestions_accent_purpose.yaml")
         return reply

@@ -10,6 +10,8 @@ import re
 import requests
 from loguru import logger
 
+from utils.deduplicate_sentence import deduplicate_sentences
+
 # from app.core.settings import settings
 from pathlib import Path
 
@@ -18,20 +20,20 @@ load_dotenv()  # .env 파일 로드
 ## CLOVA_REQ_ID_glee_agent 추가(노션에 값 추가했습니다!)
 
 
-# 중복 문장 제거
-def deduplicate_sentences(text):
-    text = text.strip()
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    dedup_lines = []
-    for line in lines:
-        if not dedup_lines or dedup_lines[-1] != line:
-            dedup_lines.append(line)
-    new_text = "\n".join(dedup_lines)
-    if new_text:
-        half = len(new_text) // 2
-        if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
-            return new_text[:half].strip()
-    return new_text
+# # 중복 문장 제거
+# def deduplicate_sentences(text):
+#     text = text.strip()
+#     lines = [line.strip() for line in text.splitlines() if line.strip()]
+#     dedup_lines = []
+#     for line in lines:
+#         if not dedup_lines or dedup_lines[-1] != line:
+#             dedup_lines.append(line)
+#     new_text = "\n".join(dedup_lines)
+#     if new_text:
+#         half = len(new_text) // 2
+#         if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
+#             return new_text[:half].strip()
+#     return new_text
 
 
 # ----------------------------

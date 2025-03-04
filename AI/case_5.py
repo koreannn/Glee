@@ -4,25 +4,26 @@ import requests
 import json
 
 
-# from utils.deduplicate_sentence import deduplicate_sentences
-# 중복 방지 -> 함수 추가했습니다.
-def deduplicate_sentences(text):
-    text = text.strip()
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
+from utils.deduplicate_sentence import deduplicate_sentences
 
-    dedup_lines = []
-    for line in lines:
-        if not dedup_lines or dedup_lines[-1] != line:
-            dedup_lines.append(line)
+# # 중복 방지 -> 함수 추가했습니다.
+# def deduplicate_sentences(text):
+#     text = text.strip()
+#     lines = [line.strip() for line in text.splitlines() if line.strip()]
 
-    new_text = "\n".join(dedup_lines)
+#     dedup_lines = []
+#     for line in lines:
+#         if not dedup_lines or dedup_lines[-1] != line:
+#             dedup_lines.append(line)
 
-    if len(new_text) > 0:
-        half = len(new_text) // 2
-        if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
-            return new_text[:half].strip()
+#     new_text = "\n".join(dedup_lines)
 
-    return new_text
+#     if len(new_text) > 0:
+#         half = len(new_text) // 2
+#         if len(new_text) % 2 == 0 and new_text[:half] == new_text[half:]:
+#             return new_text[:half].strip()
+
+#     return new_text
 
 
 # 사용자 설정 글 제안 AI

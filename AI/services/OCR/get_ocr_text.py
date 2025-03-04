@@ -13,17 +13,20 @@ def CLOVA_OCR(image_files: list[tuple[str, bytes]]) -> str:
     여러 이미지 파일 경로 리스트를 받아, 각 파일에 대해 OCR 요청을 개별적으로 보내고,
     그 결과를 합쳐서 반환합니다.
     """
+    if not image_files:
+        raise ValueError("이미지 파일 리스트가 비어있습니다.")
+
     URL = os.getenv("CLOVA_OCR_URL")
     SECRET_KEY = os.getenv("CLOVA_OCR_SECRET_KEY")
 
-    logger.info(f"URL: {URL}")
-    logger.info(f"SECRET_KEY: {SECRET_KEY}")
+    # logger.info(f"URL: {URL}")
+    # logger.info(f"SECRET_KEY: {SECRET_KEY}")
 
     if not URL or not SECRET_KEY:
         URL = settings.CLOVA_OCR_URL
         SECRET_KEY = settings.CLOVA_OCR_SECRET_KEY
-        logger.info(f"settings에서 읽은 URL: {URL}")
-        logger.info(f"settings에서 읽은 SECRET_KEY: {SECRET_KEY}")
+        # logger.info(f"settings에서 읽은 URL: {URL}")
+        # logger.info(f"settings에서 읽은 SECRET_KEY: {SECRET_KEY}")
 
         if not URL or not SECRET_KEY:
             logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
