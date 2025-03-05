@@ -8,8 +8,9 @@ def extract_text_from_ocr_result(ocr_result):
                     text_list.append(field.get("inferText", ""))
     return " ".join(text_list)
 
+
 # ----------------------------
-# 이미지 전처리를 위한 클래스 
+# 이미지 전처리를 위한 클래스
 class ImagePreprocessor:
     def preprocess(self, image_bytes: bytes) -> bytes:
         try:
@@ -24,6 +25,7 @@ class ImagePreprocessor:
         except Exception as e:
             logger.error(f"Image preprocessing failed: {e}")
             return image_bytes
+
 
 # ----------------------------
 # OCR 결과 캐싱 (같은 이미지에 대해 중복 호출 방지)
@@ -40,7 +42,9 @@ class OcrCache:
     def set(self, key: str, value: str):
         self.cache[key] = value
 
+
 ocr_cache = OcrCache()
+
 
 # ----------------------------
 # OcrPostProcessingAgent (후처리 및 Clova AI 교정)
@@ -53,8 +57,8 @@ class OcrPostProcessingAgent:
     def run(self, ocr_text: str) -> str:
         # 기본 필터링: 중복 문장, 특수문자, 공백 정리
         cleaned_text = deduplicate_sentences(ocr_text)
-        cleaned_text = re.sub(r'[^가-힣a-zA-Z0-9\s.,?!]', '', cleaned_text)
-        cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+        cleaned_text = re.sub(r"[^가-힣a-zA-Z0-9\s.,?!]", "", cleaned_text)
+        cleaned_text = re.sub(r"\s+", " ", cleaned_text).strip()
         # Clova AI(문맥 수정) 호출
         corrected_text = self.correct_text(cleaned_text)
         return corrected_text
@@ -62,8 +66,11 @@ class OcrPostProcessingAgent:
     def correct_text(self, text: str) -> str:
         payload = {
             "messages": [
-                {"role": "system", "content": "다음 텍스트에서 문맥에 맞게 자연스럽게 수정해줘. 불필요한 오류와 부자연스러운 부분을 고쳐줘."},
-                {"role": "user", "content": text}
+                {
+                    "role": "system",
+                    "content": "다음 텍스트에서 문맥에 맞게 자연스럽게 수정해줘. 불필요한 오류와 부자연스러운 부분을 고쳐줘.",
+                },
+                {"role": "user", "content": text},
             ],
             "topP": 0.8,
             "topK": 0,
@@ -72,7 +79,7 @@ class OcrPostProcessingAgent:
             "repeatPenalty": 5.0,
             "stopBefore": [],
             "includeAiFilters": True,
-            "seed": 0
+            "seed": 0,
         }
         headers = {
             "Authorization": f"Bearer {self.bearer_token}",
@@ -85,7 +92,7 @@ class OcrPostProcessingAgent:
             result_text = ""
             for line in response.iter_lines(decode_unicode=True):
                 if line and line.startswith("data:"):
-                    data_str = line[len("data:"):].strip()
+                    data_str = line[len("data:") :].strip()
                     try:
                         data_json = json.loads(data_str)
                         token = data_json.get("message", {}).get("content", "")
@@ -97,7 +104,8 @@ class OcrPostProcessingAgent:
             logger.error(f"Clova AI 교정 에러: {response.status_code} - {response.text}")
             return text
 
-# OcrAgent 
+
+# OcrAgent
 class OcrAgent:
     def __init__(self, max_retries=2):
         self.max_retries = max_retries
@@ -106,7 +114,7 @@ class OcrAgent:
 
     def run(self, image_files: list[tuple[str, bytes]]) -> str:
         aggregated_text = []
-        for (filename, filedata) in image_files:
+        for filename, filedata in image_files:
             # 이미지 전처리 적용
             processed_bytes = self.preprocessor.preprocess(filedata)
             # 캐시 확인: 동일 이미지에 대한 OCR 결과 재사용

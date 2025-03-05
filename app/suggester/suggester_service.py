@@ -1,6 +1,5 @@
 # from fastapi import UploadFile
 #
-# from AI.ocr_v2 import clova_ocr, clova_ai_reply_summary
 #
 #
 from datetime import datetime
@@ -8,7 +7,7 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
 
-from AI.ocr_v2 import (
+from AI.glee_agent import (
     generate_reply_suggestions_detail,
     generate_reply_suggestions_accent_purpose,
     generate_suggestions_situation,

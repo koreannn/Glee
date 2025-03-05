@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
 
-from AI.ocr_v2 import analyze_situation, analyze_situation_accent_purpose
+from AI.glee_agent import analyze_situation, analyze_situation_accent_purpose
 from app.history.history_service import HistoryService
 from app.suggester.suggester_request import (
     GenerateSuggestionRequest,
