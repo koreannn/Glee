@@ -16,20 +16,27 @@ def deduplicate_sentences(text: str) -> str:
         return text[:half_len].strip()
 
     # 2. 개별 문장이 반복되는 경우 처리
-    # 마침표, 물음표, 느낌표로 문장 구분
+    # 마침표, 물음표, 느낌표, 줄바꿈으로 문장 구분
     sentences = []
     current_sentence = ""
 
-    for char in text:
+    for i, char in enumerate(text):
         current_sentence += char
-        if char in [".", "?", "!"]:
+        # 문장 구분자를 만났거나 마지막 문자인 경우
+        if char in [".", "?", "!", "\n"] or i == len(text) - 1:
             current_sentence = current_sentence.strip()
-            if current_sentence and (not sentences or current_sentence != sentences[-1]):
+            # 빈 문장이 아니고 중복되지 않은 경우에만 추가
+            if current_sentence and current_sentence not in sentences:
                 sentences.append(current_sentence)
             current_sentence = ""
 
-    # 마지막 문장 처리
-    if current_sentence.strip() and (not sentences or current_sentence.strip() != sentences[-1]):
-        sentences.append(current_sentence.strip())
+    # 결과 조합 시 원래 구분자 유지
+    result = ""
+    for i, sentence in enumerate(sentences):
+        if i > 0:
+            # 이전 문장이 줄바꿈으로 끝나지 않았다면 공백 추가
+            if not sentences[i-1].endswith(("\n", ".", "?", "!")):
+                result += " "
+        result += sentence
 
-    return " ".join(sentences)
+    return result
