@@ -33,6 +33,10 @@ class SuggestionsResponse(BaseModel):
     suggestions: list[SuggestionResponse]
 
 
+class SearchSuggestionResponse(BaseModel):
+    suggestions: list[SuggestionResponse]
+
+
 class SuggestionSummary(BaseModel):
     title: str
     content: str

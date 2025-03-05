@@ -1,6 +1,5 @@
 # from fastapi import UploadFile
 #
-# from AI.ocr_v2 import clova_ocr, clova_ai_reply_summary
 #
 #
 from datetime import datetime
@@ -8,7 +7,7 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
 
-from AI.ocr_v2 import (
+from AI.glee_agent import (
     generate_reply_suggestions_detail,
     generate_reply_suggestions_accent_purpose,
     generate_suggestions_situation,
@@ -88,3 +87,12 @@ class SuggesterService:
     async def get_recommend_suggestions() -> list[SuggesterDocument]:
         data_list = await SuggesterCollection.get_recommend_documents()
         return [SuggesterDocument(**data) for data in data_list]
+
+    @staticmethod
+    async def find_suggestions_by_text(query: str, user_id: ObjectId) -> list[SuggesterDocument] | None:
+        """본문에 특정 텍스트가 포함된 문서 검색"""
+        data_list = await SuggesterCollection.find_by_text(query, user_id)
+        try:
+            return [SuggesterDocument(**data) for data in data_list] if data_list else None
+        except:
+            raise HTTPException(status_code=404, detail="Suggestion not found")

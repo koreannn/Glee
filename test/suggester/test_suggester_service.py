@@ -6,6 +6,8 @@ from app.suggester.suggester_document import SuggesterDocument
 from app.suggester.suggester_service import SuggesterService
 from datetime import datetime
 
+from app.user.user_document import UserDocument
+
 
 @pytest.mark.asyncio
 async def test_create_suggestion() -> None:
@@ -94,3 +96,14 @@ async def test_get_recommend_suggestions(exists_suggestion: SuggesterDocument) -
 
     assert len(recommend_documents) > 0
     assert recommend_documents[0].recommend is True
+
+
+@pytest.mark.asyncio
+async def test_search_suggestions(exists_suggestion: SuggesterDocument, test_user: UserDocument) -> None:
+    """추천 데이터를 검색하는 서비스 로직 테스트"""
+
+    suggestions = await SuggesterService.find_suggestions_by_text("Test", test_user.id)
+
+    assert len(suggestions) > 0
+    assert "Test" in suggestions[0].suggestion
+    assert suggestions[0].user_id == test_user.id
