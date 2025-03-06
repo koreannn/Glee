@@ -43,7 +43,7 @@ async def search_suggestions(
         SuggestionResponse(
             id=str(suggestion.id),
             title=suggestion.title,
-            tags=[],
+            tags=suggestion.tag,
             suggestion=suggestion.suggestion,
             updated_at=suggestion.updated_at,
             created_at=suggestion.created_at,
@@ -54,9 +54,11 @@ async def search_suggestions(
 
 
 @router.get("/recommend", response_model=SuggestionsResponse)
-async def get_recommend_suggestions() -> SuggestionsResponse:
-    logger.info("Request recommended suggestions")
-    suggestions = await SuggesterService.get_recommend_suggestions()
+async def get_recommend_suggestions(
+    query: str|None = Query(None, description="검색할 단어"),
+) -> SuggestionsResponse:
+    logger.info(f"Request recommended suggestions - query {query}")
+    suggestions = await SuggesterService.get_recommend_suggestions(query)
     suggestion_responses = [
         SuggestionResponse(
             id=str(suggestion.id),

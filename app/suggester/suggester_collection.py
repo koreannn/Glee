@@ -101,8 +101,11 @@ class SuggesterCollection:
         )
 
     @classmethod
-    async def get_recommend_documents(cls) -> list[dict[Any, Any]]:
-        cursor = cls._collection.find({"recommend": True})
+    async def get_recommend_documents(cls, query: str | None) -> list[dict[Any, Any]]:
+        filter_criteria = {"recommend": True}
+        if query:
+            filter_criteria["suggestion"] = {"$regex": query, "$options": "i"}
+        cursor = cls._collection.find(filter_criteria)
         return await cursor.to_list(length=100)  # 최대 100개 가져오기
 
     @classmethod

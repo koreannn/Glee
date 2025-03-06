@@ -91,8 +91,8 @@ async def test_update_suggestion() -> None:
 @pytest.mark.asyncio
 async def test_get_recommend_suggestions(exists_suggestion: SuggesterDocument) -> None:
     """추천 데이터를 가져오는 서비스 로직 테스트"""
-
-    recommend_documents = await SuggesterService.get_recommend_suggestions()
+    query = exists_suggestion.suggestion[:1]
+    recommend_documents = await SuggesterService.get_recommend_suggestions(query)
 
     assert len(recommend_documents) > 0
     assert recommend_documents[0].recommend is True
