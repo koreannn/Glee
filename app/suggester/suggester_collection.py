@@ -102,7 +102,7 @@ class SuggesterCollection:
 
     @classmethod
     async def get_recommend_documents(cls, query: str | None) -> list[dict[Any, Any]]:
-        filter_criteria = {"recommend": True}
+        filter_criteria: dict[str, Any] = {"recommend": True}
         if query:
             filter_criteria["suggestion"] = {"$regex": query, "$options": "i"}
         cursor = cls._collection.find(filter_criteria)

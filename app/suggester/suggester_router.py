@@ -55,7 +55,7 @@ async def search_suggestions(
 
 @router.get("/recommend", response_model=SuggestionsResponse)
 async def get_recommend_suggestions(
-    query: str|None = Query(None, description="검색할 단어"),
+    query: str | None = Query(None, description="검색할 단어"),
 ) -> SuggestionsResponse:
     logger.info(f"Request recommended suggestions - query {query}")
     suggestions = await SuggesterService.get_recommend_suggestions(query)

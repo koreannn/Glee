@@ -103,7 +103,8 @@ async def test_search_suggestions(exists_suggestion: SuggesterDocument, test_use
     """추천 데이터를 검색하는 서비스 로직 테스트"""
 
     suggestions = await SuggesterService.find_suggestions_by_text("Test", test_user.id)
-
+    tags = [tag.value for tag in exists_suggestion.tag]
     assert len(suggestions) > 0
     assert "Test" in suggestions[0].suggestion
     assert suggestions[0].user_id == test_user.id
+    assert suggestions[0].tag == tags
