@@ -1,4 +1,3 @@
-import logging
 from typing import Optional
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Query
@@ -24,9 +23,9 @@ from app.suggester.suggester_service import SuggesterService
 from app.user.user_document import UserDocument
 from app.utils.jwt_handler import JwtHandler
 from app.utils.models.suggestion import Suggestion
+from loguru import logger
 
 router = APIRouter(prefix="/suggester", tags=["suggester"])
-logger = logging.getLogger(__name__)
 
 
 @router.get("/search", response_model=SearchSuggestionResponse, summary="특정 단어가 포함된 제안 검색")
@@ -35,13 +34,11 @@ async def search_suggestions(
     user: UserDocument = Depends(JwtHandler.get_current_user),  # ✅ JWT 인증된 사용자
 ) -> SearchSuggestionResponse:
     """본문에 특정 단어가 포함된 제안을 검색하는 API"""
-    logger.info(f"User {user.id} is searching for suggestions containing '{query}'")
-
+    logger.info(f"User {user.nickname} {user.id} is searching for suggestions containing '{query}'")
     suggestions = await SuggesterService.find_suggestions_by_text(query, user.id)
-
     if not suggestions:
+        logger.error(f"No suggestions found for query '{query}'")
         raise HTTPException(status_code=404, detail="No suggestions found")
-
     response = [
         SuggestionResponse(
             id=str(suggestion.id),
@@ -53,12 +50,12 @@ async def search_suggestions(
         )
         for suggestion in suggestions
     ]
-
     return SearchSuggestionResponse(suggestions=response)
 
 
 @router.get("/recommend", response_model=SuggestionsResponse)
 async def get_recommend_suggestions() -> SuggestionsResponse:
+    logger.info("Request recommended suggestions")
     suggestions = await SuggesterService.get_recommend_suggestions()
     suggestion_responses = [
         SuggestionResponse(
@@ -93,23 +90,24 @@ async def analyze_images(
     logger.info("Received image analysis request")
     image_files = [file for file in [image_file_1, image_file_2, image_file_3, image_file_4] if file is not None]
     if len(image_files) > 4:
+        logger.error("User tried to upload more than 4 images")
         raise HTTPException(status_code=400, detail="You can only upload up to 4 images.")
 
     elif len(image_files) == 0:
+        logger.error("User tried to upload 0 images")
         raise HTTPException(status_code=400, detail="You must upload at least one image.")
 
     files_data = [(file.filename, await file.read()) for file in image_files]
-    logger.info(f"Analyzing images for purpose: {purpose}")
     if purpose == PurposeType.PHOTO_RESPONSE:
         situation = analyze_situation(files_data)
         tone = ""
         usage = ""
-
     elif purpose == PurposeType.SIMILAR_VIBE_RESPONSE:
         situation, tone, usage = analyze_situation_accent_purpose(files_data)
     else:
+        logger.error(f"Failed to analyze images - Invalid purpose: {purpose}")
         raise HTTPException(status_code=400, detail="Invalid purpose.")
-    logger.info("Image analysis completed successfully")
+    logger.info(f"Analyzed images - Situation: {situation}, Tone: {tone}, Usage: {usage}, Purpose: {purpose}")
     return AnalyzeImagesConversationResponse(situation=situation, tone=tone, usage=usage, purpose=purpose)
 
 

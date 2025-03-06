@@ -1,4 +1,4 @@
-import logging
+from loguru import logger
 
 from fastapi import APIRouter, Depends
 
@@ -8,11 +8,11 @@ from app.user.user_document import UserDocument
 from app.utils.jwt_handler import JwtHandler
 
 router = APIRouter(prefix="/history", tags=["history"])
-logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=GetHistoryResponse)
 async def get_history(user: UserDocument = Depends(JwtHandler.get_current_user)) -> GetHistoryResponse:
+    logger
     histories = await HistoryService.get_histories_by_user(user.id)
     history = [
         History(suggestions=history.suggestions, updated_at=history.updated_at, created_at=history.created_at)

@@ -108,11 +108,13 @@ class SuggesterCollection:
     @classmethod
     async def find_by_text(cls, query: str, user_id: ObjectId) -> list[dict[Any, Any]]:
         """본문에 특정 텍스트가 포함된 문서 검색 (suggestion, title 필드 모두)"""
-        cursor = cls._collection.find({
-            "user_id": user_id,
-            "$or": [
-                {"suggestion": {"$regex": query, "$options": "i"}},
-                {"title": {"$regex": query, "$options": "i"}},
-            ]
-        })
+        cursor = cls._collection.find(
+            {
+                "user_id": user_id,
+                "$or": [
+                    {"suggestion": {"$regex": query, "$options": "i"}},
+                    {"title": {"$regex": query, "$options": "i"}},
+                ],
+            }
+        )
         return await cursor.to_list(length=100)

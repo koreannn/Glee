@@ -68,12 +68,7 @@ def test_reply_suggestions():
 
 def test_new_reply_suggestions():
     """새로운 답변 추천 기능 테스트"""
-    result = CLOVA_AI_New_Reply_Suggestions(
-        "배고픈 상황",
-        "친절하게",
-        "카카오톡",
-        "친절하지만 퉁명스럽게 말해주세요"
-    )
+    result = CLOVA_AI_New_Reply_Suggestions("배고픈 상황", "친절하게", "카카오톡", "친절하지만 퉁명스럽게 말해주세요")
     assert isinstance(result, list), "결과가 리스트 형태여야 합니다"
     assert len(result) > 0, "최소 하나 이상의 답변이 생성되어야 합니다"
 
@@ -107,9 +102,7 @@ def test_generate_suggestions_situation():
 
 def test_generate_reply_suggestions_accent_purpose():
     """상황/말투/용도 기반 답변 생성 테스트"""
-    suggestions, title = generate_reply_suggestions_accent_purpose(
-        "아, 자고싶다.", "친절하게", "카카오톡"
-    )
+    suggestions, title = generate_reply_suggestions_accent_purpose("아, 자고싶다.", "친절하게", "카카오톡")
     assert isinstance(suggestions, list), "suggestions가 리스트여야 합니다"
     assert title != "", "제목이 생성되어야 합니다"
 
@@ -117,10 +110,7 @@ def test_generate_reply_suggestions_accent_purpose():
 def test_generate_reply_suggestions_detail():
     """상세 정보 포함 답변 생성 테스트"""
     suggestions, title = generate_reply_suggestions_detail(
-        "아, 자고싶다.",
-        "친절하게",
-        "카카오톡",
-        "자고싶다는 말을 친절하고 차분하게 전달하고싶어요"
+        "아, 자고싶다.", "친절하게", "카카오톡", "자고싶다는 말을 친절하고 차분하게 전달하고싶어요"
     )
     assert isinstance(suggestions, list), "suggestions가 리스트여야 합니다"
     assert title != "", "제목이 생성되어야 합니다"
