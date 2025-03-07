@@ -77,7 +77,7 @@ def analyze_situation_accent_purpose(image_files: List[Tuple[str, bytes]]) -> Tu
 
 # -------------------------------------------------------------------
 # [3] 상황만을 기반으로 글 제안을 생성하는 함수
-def generate_suggestions_situation(situation: str) -> tuple[lisimage_textt[str], list[str]]:
+def generate_suggestions_situation(situation: str) -> tuple[[str], list[str]]:
     agent = OrchestratorAgent()
     result = agent.run_reply_mode(situation)
     return result["replies"], result["titles"]
