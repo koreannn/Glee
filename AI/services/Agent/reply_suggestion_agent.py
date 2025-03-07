@@ -1,3 +1,6 @@
+from AI.glee_agent import reply_service
+
+
 class ReplySuggestionAgent:
     def __init__(self, variant="old", max_retries=2):
         self.variant = variant

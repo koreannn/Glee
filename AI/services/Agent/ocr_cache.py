@@ -1,3 +1,6 @@
+import hashlib
+
+
 class OcrCache:
     def __init__(self):
         self.cache = {}

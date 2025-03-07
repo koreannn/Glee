@@ -1,3 +1,10 @@
+from io import BytesIO
+
+from PIL import ImageOps
+from PIL.Image import Image
+from loguru import logger
+
+
 class ImagePreprocessor:
     def preprocess(self, image_bytes: bytes) -> bytes:
         """이미지 전처리를 수행합니다."""

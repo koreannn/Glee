@@ -49,3 +49,6 @@ exclude = 'airflow/.*'
 
 [tool.poetry.group.ai.dependencies]
 youtube-transcript-api = ">=0.6.2,<0.7.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -1,3 +1,6 @@
+from AI.glee_agent import situation_service
+
+
 class SummarizerAgent:
     def __init__(self, max_retries=2):
         self.max_retries = max_retries

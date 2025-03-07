@@ -1,3 +1,15 @@
+import os
+import tempfile
+from typing import List, Tuple
+
+from loguru import logger
+
+from AI.glee_agent import ocr_service, extract_text_from_ocr_result
+from AI.services.Agent import ocr_cache
+from AI.services.Agent.image_pre_processor import ImagePreprocessor
+from AI.services.Agent.ocr_post_processing_agent import OcrPostProcessingAgent
+
+
 class OcrAgent:
     """OCR 처리를 담당하는 에이전트"""
 
