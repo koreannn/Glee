@@ -1,4 +1,4 @@
-from AI.glee_agent import title_service
+from AI.utils.services import title_service
 
 
 class TitleSuggestionAgent:

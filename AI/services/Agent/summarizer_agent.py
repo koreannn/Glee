@@ -1,4 +1,4 @@
-from AI.glee_agent import situation_service
+from AI.utils.services import situation_service
 
 
 class SummarizerAgent:

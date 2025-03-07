@@ -1,4 +1,4 @@
-from AI.glee_agent import reply_service
+from AI.utils.services import reply_service
 
 
 class ReplySuggestionAgent:
