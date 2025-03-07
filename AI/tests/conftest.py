@@ -4,8 +4,9 @@ from pathlib import Path
 import pytest
 from unittest.mock import Mock
 
-# AI 모듈을 import할 수 있도록 경로 추가
-sys.path.append(str(Path(__file__).parent.parent.parent))
+# # AI 모듈을 import할 수 있도록 경로 추가
+# sys.path.append(str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from dotenv import load_dotenv
 

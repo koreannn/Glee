@@ -53,7 +53,7 @@ class VideoSearchService:
                                 "description": item["snippet"]["description"],
                                 "url": f"https://www.youtube.com/watch?v={item['id']['videoId']}",
                             }
-                            
+
                             if all(video_info.values()):
                                 logger.info(f"검색 결과: {video_info}")
                                 return video_info
@@ -63,7 +63,7 @@ class VideoSearchService:
                     except Exception as e:
                         logger.error(f"영상 정보 추출 중 누락된 필드가 있습니다. 다음 영상을 참조합니다.: {e}")
                         continue
-                
+
                 # 다음 페이지 토큰이 있는지 확인
                 page_token = search_response.get("nextPageToken")
                 if not page_token:

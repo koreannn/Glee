@@ -12,11 +12,11 @@ class CLOVA_OCR:
     def __init__(self):
         self.URL = os.getenv("CLOVA_OCR_URL")
         self.SECRET_KEY = os.getenv("CLOVA_OCR_SECRET_KEY")
-        
+
         if not self.URL or not self.SECRET_KEY:
             self.URL = settings.CLOVA_OCR_URL
             self.SECRET_KEY = settings.CLOVA_OCR_SECRET_KEY
-        
+
         if not self.URL or not self.SECRET_KEY:
             logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
 

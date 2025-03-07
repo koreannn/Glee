@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import uuid
 import time
@@ -11,22 +12,25 @@ from loguru import logger
 import tempfile
 
 
+# 프로젝트 루트 디렉토리를 Python 경로에 추가
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 # from app.core.settings import settings
 from pathlib import Path
 from PIL import Image, ImageOps
 import hashlib
 from io import BytesIO
+from typing import List, Tuple, Dict, Optional, Union
 
 
 load_dotenv()  # .env 파일 로드
 
-from AI.services.Generation.reply_seggestion import ReplySuggestion
-from AI.services.OCR.get_ocr_text import CLOVA_OCR
-from AI.services.Analysis.analyze_situation import Analyze
-from AI.services.Generation.title_suggestion import TitleSuggestion
-from AI.services.videosearch_service import VideoSearchService
-
-## CLOVA_REQ_ID_glee_agent 추가(노션에 값 추가했습니다!)
+# 상대 경로로 임포트 변경
+from services.Generation.reply_seggestion import ReplySuggestion
+from services.OCR.get_ocr_text import CLOVA_OCR
+from services.Analysis.analyze_situation import Analyze
+from services.Generation.title_suggestion import TitleSuggestion
+from services.videosearch_service import VideoSearchService
 
 ocr_service = CLOVA_OCR()
 situation_service = Analyze()
@@ -35,69 +39,79 @@ title_service = TitleSuggestion()
 video_search_service = VideoSearchService()
 
 
-
 # 1. 상황, 말투, 용도 파싱하는 부분
 # 2. 제목, 답변 파싱하는 부분 이렇게 두 가지 확읺해야함
 
-def parse_style_analysis(result: str): # -> analyze_situation._parse_style_analysis()
-    situation, accent, purpose = "", "", ""
-    lines = result.splitlines()
-    for line in lines:
-        if line.strip().startswith("상황"):
-            parts = line.split(":", 1)
-            if len(parts) > 1:
-                situation = parts[1].strip()
-        elif line.strip().startswith("말투"):
-            parts = line.split(":", 1)
-            if len(parts) > 1:
-                accent = parts[1].strip()
-        elif line.strip().startswith("용도"):
-            parts = line.split(":", 1)
-            if len(parts) > 1:
-                purpose = parts[1].strip()
+
+def parse_style_analysis(result: str) -> Tuple[str, str, str]:
+    """스타일 분석 결과에서 상황, 말투, 용도를 추출합니다."""
+    situation = ""
+    accent = ""
+    purpose = ""
+
+    for line in result.strip().split("\n"):
+        line = line.strip()
+        if line.startswith("상황:"):
+            situation = line.replace("상황:", "").strip()
+        elif line.startswith("말투:"):
+            accent = line.replace("말투:", "").strip()
+        elif line.startswith("용도:"):
+            purpose = line.replace("용도:", "").strip()
+
     return situation, accent, purpose
 
 
-def parse_suggestion(suggestion: str):
-    cleaned = suggestion.strip()
-    cleaned = re.sub(r"^(제목|답변)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
-    cleaned = cleaned.replace('"', "")
-    n = len(cleaned)
-    half = n // 2
-    if n % 2 == 0 and cleaned[:half] == cleaned[half:]:
-        cleaned = cleaned[:half].strip()
-    return cleaned, "" # 빈 문자열은 왜 반환?
+def parse_suggestion(suggestion: str) -> Tuple[str, str]:
+    """제안 텍스트에서 제목과 내용을 추출합니다."""
+    title = ""
+    content = suggestion
 
+    if "제목:" in suggestion:
+        parts = suggestion.split("제목:", 1)
+        if len(parts) > 1:
+            content = parts[0].strip()
+            title = parts[1].strip()
 
-#########################################
-# Glee 에이전트 클래스
-#########################################
+    return title, content
 
 
 # 헬퍼 함수: OCR 결과 JSON에서 텍스트 추출
-def extract_text_from_ocr_result(ocr_result):
-    text_list = []
-    if isinstance(ocr_result, dict) and "images" in ocr_result:
-        for image in ocr_result["images"]:
-            if "fields" in image:
-                for field in image["fields"]:
-                    text_list.append(field.get("inferText", ""))
-    return " ".join(text_list)
+def extract_text_from_ocr_result(ocr_result) -> str:
+    """OCR 결과에서 텍스트를 추출합니다."""
+    if isinstance(ocr_result, str):
+        return ocr_result
+
+    try:
+        if isinstance(ocr_result, dict) and "images" in ocr_result:
+            extracted_text = ""
+            for image in ocr_result["images"]:
+                if "fields" in image:
+                    for field in image["fields"]:
+                        if "inferText" in field:
+                            extracted_text += field["inferText"] + " "
+            return extracted_text.strip()
+    except Exception as e:
+        logger.error(f"OCR 결과 파싱 중 오류 발생: {e}")
+
+    return ""
 
 
 # ----------------------------
 # 이미지 전처리를 위한 클래스
 class ImagePreprocessor:
     def preprocess(self, image_bytes: bytes) -> bytes:
+        """이미지 전처리를 수행합니다."""
         try:
-            with BytesIO(image_bytes) as stream:
-                image = Image.open(stream)
-                # 그레이스케일 변환 및 대비 보정
-                image = ImageOps.grayscale(image)
-                image = ImageOps.autocontrast(image)
-                output_stream = BytesIO()
-                image.save(output_stream, format="JPEG")
-                return output_stream.getvalue()
+            # 이미지 로드 및 전처리
+            image = Image.open(BytesIO(image_bytes))
+
+            # 이미지 정규화 (크기 조정, 회전 등)
+            image = ImageOps.exif_transpose(image)  # EXIF 정보에 따라 이미지 회전
+
+            # 결과 이미지를 바이트로 변환
+            output_buffer = BytesIO()
+            image.save(output_buffer, format=image.format or "PNG")
+            return output_buffer.getvalue()
         except Exception as e:
             logger.error(f"Image preprocessing failed: {e}")
             return image_bytes
@@ -125,18 +139,8 @@ ocr_cache = OcrCache()
 # ----------------------------
 # OcrPostProcessingAgent
 class OcrPostProcessingAgent:
-    def __init__(self):
-
-        self.clova_ai_url = os.getenv("https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003")
-        self.bearer_token = os.getenv("CLOVA_AI_BEARER_TOKEN")
-        self.request_id = os.getenv("CLOVA_REQ_ID_glee_agent")
-
     def run(self, ocr_text: str) -> str:
-
-        # cleaned_text = deduplicate_sentences(ocr_text) or ""
-        # logger.info(f"Text before cleaning:\n{cleaned_text}")
-
-        # 간단한 정규표현식을 사용하여 특수문자 제거 및 공백 정리
+        cleaned_text = ocr_text
         cleaned_text = re.sub(r"[^가-힣a-zA-Z0-9\s.,?!]", "", cleaned_text)
         cleaned_text = re.sub(r"\s+", " ", cleaned_text).strip()
         logger.info(f"Text after cleaning:\n{cleaned_text}")
@@ -146,33 +150,42 @@ class OcrPostProcessingAgent:
 
 # OcrAgent
 class OcrAgent:
+    """OCR 처리를 담당하는 에이전트"""
+
     def __init__(self, max_retries=2):
         self.max_retries = max_retries
         self.post_processor = OcrPostProcessingAgent()
         self.preprocessor = ImagePreprocessor()
 
-    def run(self, image_files: list[tuple[str, bytes]]) -> str:
+    def run(self, image_files: List[Tuple[str, bytes]]) -> str:
+        """이미지 파일에서 텍스트를 추출합니다."""
         aggregated_text = []
+        temp_files = []  # 임시 파일 경로 저장 리스트
 
-        for filename, filedata in image_files:
-            # 이미지 전처리 적용
-            processed_bytes = self.preprocessor.preprocess(filedata)
-            # 캐시 확인: 동일 이미지에 대한 OCR 결과 재사용
-            file_hash = ocr_cache.get_hash(processed_bytes)
-            cached_result = ocr_cache.get(file_hash)
-            if cached_result:
-                logger.info(f"Using cached OCR result for {filename}")
-                aggregated_text.append(cached_result)
-                continue
+        try:
+            for filename, filedata in image_files:
+                # 이미지 전처리 적용
+                processed_bytes = self.preprocessor.preprocess(filedata)
 
-            # 임시 파일 생성
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
-                temp_file.write(processed_bytes)
-                temp_file_path = temp_file.name
-            try:
+                # 캐시 확인
+                file_hash = ocr_cache.get_hash(processed_bytes)
+                cached_result = ocr_cache.get(file_hash)
+                if cached_result:
+                    logger.info(f"Using cached OCR result for {filename}")
+                    aggregated_text.append(cached_result)
+                    continue
+
+                # 임시 파일 생성
+                with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
+                    temp_file.write(processed_bytes)
+                    temp_file_path = temp_file.name
+                    temp_files.append(temp_file_path)  # 임시 파일 경로 저장
+
+                # OCR 처리
                 retry = 0
                 while retry <= self.max_retries:
-                    ocr_result = CLOVA_OCR([(filename, processed_bytes)])
+                    # 파일 경로 리스트만 전달
+                    ocr_result = ocr_service.CLOVA_OCR([temp_file_path])
                     if isinstance(ocr_result, str) and ocr_result.startswith("Error"):
                         logger.error(ocr_result)
                         aggregated_text.append("")
@@ -185,12 +198,18 @@ class OcrAgent:
                         aggregated_text.append(extracted_text)
                         ocr_cache.set(file_hash, extracted_text)
                         break
-            finally:
-                os.remove(temp_file_path)
-        raw_text = "\n".join(aggregated_text)
-        processed_text = self.post_processor.run(raw_text)
-        return processed_text
 
+            raw_text = "\n".join(aggregated_text)
+            processed_text = self.post_processor.run(raw_text)
+            return processed_text
+
+        finally:
+            # 모든 임시 파일 삭제
+            for temp_file_path in temp_files:
+                try:
+                    os.remove(temp_file_path)
+                except Exception as e:
+                    logger.error(f"임시 파일 삭제 중 오류 발생: {e}")
 
 
 class SummarizerAgent:
@@ -202,7 +221,7 @@ class SummarizerAgent:
         summary = ""
         while retry <= self.max_retries:
             summary = situation_service.situation_summary(input_text)
-            if len(summary.strip()) < 10 and retry < self.max_retries: 
+            if len(summary.strip()) < 10 and retry < self.max_retries:
                 input_text += "\n좀 더 자세히 요약해줘."
                 retry += 1
                 continue
@@ -240,9 +259,9 @@ class ReplySuggestionAgent:
 
 class StyleAnalysisAgent:
     def run(self, input_text: str):
-        result = situation_service.style_analysis(input_text)
-        situation, accent, purpose = parse_style_analysis(result)
-        return result, situation, accent, purpose # result 반환하고 나서 어디에 쓰임?
+        style_result = situation_service.style_analysis(input_text)
+        situation, accent, purpose = parse_style_analysis(style_result)
+        return style_result, situation, accent, purpose
 
 
 class FeedbackAgent:
@@ -253,10 +272,46 @@ class FeedbackAgent:
     def check_and_improve(self, output: str, original_input: str, agent):
         retries = 0
         improved_output = output
+
+        # 리스트나 튜플인 경우 처리
+        if isinstance(improved_output, (list, tuple)):
+            if improved_output:
+                if isinstance(improved_output, tuple):
+                    # 튜플의 첫 번째 항목이 문자열인 경우 사용
+                    improved_output = (
+                        improved_output[0] if isinstance(improved_output[0], str) else str(improved_output[0])
+                    )
+                else:  # 리스트인 경우
+                    improved_output = improved_output[0]
+            else:
+                improved_output = ""
+
+        # 문자열이 아닌 경우 문자열로 변환
+        if not isinstance(improved_output, str):
+            improved_output = str(improved_output)
+
         while len(improved_output.strip()) < self.min_length and retries < self.max_retries:
             improved_input = original_input + "\n추가 상세 설명 부탁해."
-            improved_output = agent.run(improved_input)
+            new_output = agent.run(improved_input)
+
+            # 리스트나 튜플인 경우 처리
+            if isinstance(new_output, (list, tuple)):
+                if new_output:
+                    if isinstance(new_output, tuple):
+                        # 튜플의 첫 번째 항목이 문자열인 경우 사용
+                        new_output = new_output[0] if isinstance(new_output[0], str) else str(new_output[0])
+                    else:  # 리스트인 경우
+                        new_output = new_output[0]
+                else:
+                    break
+
+            # 문자열이 아닌 경우 문자열로 변환
+            if not isinstance(new_output, str):
+                new_output = str(new_output)
+
+            improved_output = new_output
             retries += 1
+
         return improved_output
 
 
@@ -270,7 +325,7 @@ class OrchestratorAgent:
         self.style_agent = StyleAnalysisAgent()
         self.feedback_agent = FeedbackAgent()
 
-    def run_reply_mode(self, input_text: str) -> dict:
+    def run_reply_mode(self, input_text: str) -> Dict[str, Union[str, List[str]]]:
         # 상황 요약 생성
         summary = self.summarizer_agent.run(input_text)
         summary = self.feedback_agent.check_and_improve(summary, input_text, self.summarizer_agent)
@@ -290,18 +345,19 @@ class OrchestratorAgent:
             "replies": replies,
         }
 
-    def run_style_mode(self, input_text: str) -> dict:
+    def run_style_mode(self, input_text: str) -> Dict[str, Union[str, List[str]]]:
         # 스타일 분석 (상황, 말투, 용도 추출)
         style_result, situation, tone, usage = self.style_agent.run(input_text)
         style_result = self.feedback_agent.check_and_improve(style_result, input_text, self.style_agent)
 
-        # 제목 생성
-        titles = self.title_agent.run(style_result)
+        # 제목 제안 생성
+        titles = self.title_agent.run(situation)
 
-        # 답장 제안 생성 (상세)
-        replies = self.reply_agent_new.run(style_result)
+        # 답변 제안 생성 (말투, 용도 정보 활용)
+        detailed_input = f"상황: {situation}\n말투: {tone}\n용도: {usage}"
+        replies = self.reply_agent_new.run(detailed_input)
         replies = [
-            self.feedback_agent.check_and_improve(reply, style_result, self.reply_agent_new) for reply in replies
+            self.feedback_agent.check_and_improve(reply, detailed_input, self.reply_agent_new) for reply in replies
         ]
 
         return {
@@ -313,55 +369,89 @@ class OrchestratorAgent:
             "style_analysis": style_result,
         }
 
-    def run_manual_mode(self, situation: str, accent: str, purpose: str, details: str) -> dict:
-        # 입력 정보에 기반하여 전체 프롬프트 생성
-        prompt = (
-            f"상황: {situation}\n"
-            f"말투: {accent}\n"
-            f"글 사용처: {purpose}\n"
-            f"추가 디테일: {details}\n"
-            "위 내용을 바탕으로 자연스러운 답장을 작성해줘."
-        )
-        # 제목 생성
-        titles = self.title_agent.run(prompt)
-        # 답장 제안 생성
-        replies = self.reply_agent_new.run(prompt)
-        replies = [self.feedback_agent.check_and_improve(reply, prompt, self.reply_agent_new) for reply in replies]
+    def run_manual_mode(
+        self, situation: str, accent: str, purpose: str, details: str
+    ) -> Dict[str, Union[str, List[str]]]:
+        # 입력 정보에 기반하여 전체 프롬프트 생성 (수동 입력으로 받을 경우)
+        detailed_input = f"상황: {situation}\n말투: {accent}\n용도: {purpose}\n추가 설명: {details}"
+
+        # 제목 제안 생성
+        titles = self.title_agent.run(situation)
+
+        # 답변 제안 생성 (말투, 용도, 추가 설명 정보 활용)
+        replies = self.reply_agent_new.run(detailed_input)
+        replies = [
+            self.feedback_agent.check_and_improve(reply, detailed_input, self.reply_agent_new) for reply in replies
+        ]
 
         return {
             "situation": situation,
             "accent": accent,
             "purpose": purpose,
+            "details": details,
             "titles": titles,
             "replies": replies,
-            "prompt": prompt,
         }
-
 
 
 #####################################################################
 # -------------------------------------------------------------------
 # [1] 이미지파일 (최대 4개) 입력 -> 상황을 뱉어내는 함수
-def analyze_situation(image_files: list[tuple[str, bytes]]) -> str:
+def analyze_situation(image_files: List[Tuple[str, bytes]]) -> str:
     if not image_files:
         return ""
-    aggregated_text = []
-    for filename, filedata in image_files:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
-            temp_file.write(filedata)
-            temp_file_path = temp_file.name
-        try:
-            with open(temp_file_path, "rb") as f:
-                temp_file_data = f.read()
-            ocr_result = CLOVA_OCR([(os.path.basename(temp_file_path), temp_file_data)])
-            extracted_text = ocr_result
-            aggregated_text.append(extracted_text)
-        finally:
-            os.remove(temp_file_path)
-    image2text = "\n".join(aggregated_text)
-    situation_string = situation_service.situation_summary(image2text)
+
+    # OCR 에이전트를 사용하여 텍스트 추출
+    ocr_agent = OcrAgent()
+    image_text = ocr_agent.run(image_files)
+
+    # 상황 요약 에이전트를 사용하여 상황 분석
+    summarizer_agent = SummarizerAgent()
+    situation_string = summarizer_agent.run(image_text)
+
     return situation_string
 
+
+# [2] 이미지파일 (최대 4개) 입력 -> 상황, 말투, 용도를 뱉어내는 함수
+def analyze_situation_accent_purpose(image_files: List[Tuple[str, bytes]]) -> Tuple[str, str, str]:
+    if not image_files:
+        return "", "", ""
+
+    # OCR 에이전트를 사용하여 텍스트 추출
+    ocr_agent = OcrAgent()
+    image_text = ocr_agent.run(image_files)
+
+    # 스타일 분석 에이전트를 사용하여 스타일 분석
+    style_agent = StyleAnalysisAgent()
+    _, situation, accent, purpose = style_agent.run(image_text)
+
+    return situation, accent, purpose
+
+
+# -------------------------------------------------------------------
+# [3] 상황만을 기반으로 글 제안을 생성하는 함수
+def generate_suggestions_situation(situation: str) -> tuple[list[str], list[str]]:
+    agent = OrchestratorAgent()
+    result = agent.run_reply_mode(situation)
+    return result["replies"], result["titles"]
+
+
+# -------------------------------------------------------------------
+# [4] 상황, 말투, 용도를 기반으로 글 제안을 생성하는 함수
+def generate_reply_suggestions_accent_purpose(situation: str, accent: str, purpose: str) -> tuple[list[str], list[str]]:
+    agent = OrchestratorAgent()
+    result = agent.run_manual_mode(situation, accent, purpose, "")
+    return result["replies"], result["titles"]
+
+
+# -------------------------------------------------------------------
+# [5] 상황, 말투, 용도, 상세 설명을 기반으로 글 제안을 생성하는 함수
+def generate_reply_suggestions_detail(
+    situation: str, accent: str, purpose: str, detailed_description: str
+) -> tuple[list[str], list[str]]:
+    agent = OrchestratorAgent()
+    result = agent.run_manual_mode(situation, accent, purpose, detailed_description)
+    return result["replies"], result["titles"]
 
 
 # if __name__ == "__main__":
@@ -471,3 +561,11 @@ def analyze_situation(image_files: list[tuple[str, bytes]]) -> str:
 # [제안 3] 제목: jupyter 오류 해결 방법
 # [제안 3] 내용: "오류 메시지를 알려주시면 더 정확하게 안내해 드릴 수 있을 것 같아요! 그리고 인터넷 검색이나 공식 문서를 참고하시면 문제를 해결하실 수 있을 거예요."
 
+
+if __name__ == "__main__":
+    # 테스트 코드
+    ocr = OcrAgent()
+    with open("AI/OCR_Test1.png", "rb") as f:
+        file_data = f.read()
+        result = ocr.run([("AI/OCR_Test1.png", file_data)])
+        print(result)

@@ -35,7 +35,7 @@ def deduplicate_sentences(text: str) -> str:
     for i, sentence in enumerate(sentences):
         if i > 0:
             # 이전 문장이 줄바꿈으로 끝나지 않았다면 공백 추가
-            if not sentences[i-1].endswith(("\n", ".", "?", "!")):
+            if not sentences[i - 1].endswith(("\n", ".", "?", "!")):
                 result += " "
         result += sentence
 

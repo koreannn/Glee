@@ -10,6 +10,7 @@ from AI.services.OCR.get_ocr_text import CLOVA_OCR
 from AI.services.Analysis.analyze_situation import Analyze
 from AI.services.Generation.title_suggestion import TitleSuggestion
 from AI.services.videosearch_service import VideoSearchService
+
 """
 직접 출력 테스트
 """
@@ -94,4 +95,3 @@ logger.add("logs/app.log", rotation="500 MB")
 test_query = "랄로"
 video_info = video_search_service.youtube_search(test_query)
 video_caption = video_search_service.get_video_transcripts(video_info)
-
