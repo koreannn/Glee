@@ -70,7 +70,7 @@ def analyze_situation_accent_purpose(image_files: List[Tuple[str, bytes]]) -> Tu
 
     # 스타일 분석 에이전트를 사용하여 스타일 분석
     style_agent = StyleAnalysisAgent()
-    _, situation, accent, purpose = style_agent.run()
+    _, situation, accent, purpose = style_agent.run(image_text)
 
     return situation, accent, purpose
 
