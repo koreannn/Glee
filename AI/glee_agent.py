@@ -453,7 +453,6 @@ def generate_reply_suggestions_detail(
     result = agent.run_manual_mode(situation, accent, purpose, detailed_description)
     return result["replies"], result["titles"]
 
-
 # if __name__ == "__main__":
 #    test_text = "test test test "
 #    summarizer = SummarizerAgent()
