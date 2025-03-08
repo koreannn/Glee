@@ -16,8 +16,11 @@ load_dotenv()  # .env 파일 로드
 
 
 class GleeAgent:
-
     ocr_agent = OcrAgent()
+    summarizer_agent = SummarizerAgent()
+    style_agent = StyleAnalysisAgent()
+
+    orchestrator_agent = OrchestratorAgent()
 
     @classmethod
     async def parse_suggestion(cls, suggestion: str) -> Tuple[str, str]:
@@ -44,8 +47,8 @@ class GleeAgent:
         image_text = await cls.ocr_agent.run(image_files)
 
         # 상황 요약 에이전트를 사용하여 상황 분석
-        summarizer_agent = SummarizerAgent()
-        situation_string = summarizer_agent.run(image_text)
+
+        situation_string = cls.summarizer_agent.run(image_text)
 
         return situation_string
 
@@ -59,17 +62,15 @@ class GleeAgent:
         image_text = await cls.ocr_agent.run(image_files)
 
         # 스타일 분석 에이전트를 사용하여 스타일 분석
-        style_agent = StyleAnalysisAgent()
-        _, situation, accent, purpose = style_agent.run(image_text)
+        _, situation, accent, purpose = cls.style_agent.run(image_text)
 
         return situation, accent, purpose
 
     # -------------------------------------------------------------------
     # [3] 상황만을 기반으로 글 제안을 생성하는 함수
     @classmethod
-    async def generate_suggestions_situation(cls, situation: str) -> tuple[[str], list[str]]:
-        agent = OrchestratorAgent()
-        result = agent.run_reply_mode(situation)
+    async def generate_suggestions_situation(cls, situation: str) -> tuple[str, list[str]]:
+        result = cls.orchestrator_agent.run_reply_mode(situation)
         return result["replies"], result["titles"]
 
     # -------------------------------------------------------------------
@@ -78,8 +79,8 @@ class GleeAgent:
     async def generate_reply_suggestions_accent_purpose(
         cls, situation: str, accent: str, purpose: str
     ) -> tuple[list[str], list[str]]:
-        agent = OrchestratorAgent()
-        result = agent.run_manual_mode(situation, accent, purpose, "")
+
+        result = cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, "")
         return result["replies"], result["titles"]
 
     # -------------------------------------------------------------------
@@ -88,6 +89,6 @@ class GleeAgent:
     async def generate_reply_suggestions_detail(
         cls, situation: str, accent: str, purpose: str, detailed_description: str
     ) -> tuple[list[str], list[str]]:
-        agent = OrchestratorAgent()
-        result = agent.run_manual_mode(situation, accent, purpose, detailed_description)
+
+        result = cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, detailed_description)
         return result["replies"], result["titles"]

@@ -161,7 +161,6 @@ async def test_analyze_images_to_response_to_photo(test_image_path: Path, auth_h
     assert response.json()["purpose"] == PurposeType.PHOTO_RESPONSE.value
 
 
-
 @pytest.mark.asyncio
 async def test_analyze_images_to_similar_vibe(test_image_path: Path, auth_header: dict[str, str]) -> None:
 
