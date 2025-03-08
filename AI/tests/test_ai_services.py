@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List
 
 from loguru import logger
-from AI.services.OCR.get_ocr_text import CLOVA_OCR
+from AI.services.OCR.clova_ocr import ClovaOcr
 from AI.services.Analysis.analyze_situation import Analyze
 from AI.services.Generation.reply_seggestion import ReplySuggestion
 from AI.services.Generation.title_suggestion import TitleSuggestion
@@ -37,7 +37,7 @@ def services():
 
 def test_ocr_service(test_image_files):  # OCR 테스트
     logger.info("\n1. OCR 텍스트 인식 테스트")
-    result = CLOVA_OCR(test_image_files)
+    result = ClovaOcr(test_image_files)
     assert isinstance(result, str)
     assert len(result) > 0
 
@@ -45,7 +45,7 @@ def test_ocr_service(test_image_files):  # OCR 테스트
 def test_analyze_situation(test_image_files, services):  # 상황 분석 테스트
     logger.info("\n2. 상황 분석 테스트")
     # OCR 텍스트 추출
-    image2text = CLOVA_OCR(test_image_files)
+    image2text = ClovaOcr(test_image_files)
     assert image2text, "OCR 텍스트가 추출되지 않았습니다"
 
     # 상황 요약
@@ -57,7 +57,7 @@ def test_analyze_situation(test_image_files, services):  # 상황 분석 테스�
 def test_analyze_situation_with_style(test_image_files, services):  # 말투, 용도 분석 테스트
     logger.info("\n3. 말투, 용도 분석 테스트")
     # OCR 텍스트 추출
-    image2text = CLOVA_OCR(test_image_files)
+    image2text = ClovaOcr(test_image_files)
     assert image2text, "OCR 텍스트가 추출되지 않았습니다"
 
     # 상황 요약
@@ -76,7 +76,7 @@ def test_analyze_situation_with_style(test_image_files, services):  # 말투, �
 def test_generate_suggestions(test_image_files, services):  # 상황 -> 답변 생성 테스트
     logger.info("\n4. 상황 -> 답변 생성 테스트")
     # 상황 분석
-    image2text = CLOVA_OCR(test_image_files)
+    image2text = ClovaOcr(test_image_files)
     situation = services["situation"].situation_summary(image2text)
 
     # 답변 생성
@@ -95,7 +95,7 @@ def test_generate_suggestions(test_image_files, services):  # 상황 -> 답변 �
 def test_generate_detailed_suggestions(test_image_files, services):  # 상황, 말투, 용도 -> 상세 답변 생성 테스트
     logger.info("\n5. 상황, 말투, 용도 -> 상세 답변 생성 테스트")
     # 상황 분석
-    image2text = CLOVA_OCR(test_image_files)
+    image2text = ClovaOcr(test_image_files)
     situation = services["situation"].situation_summary(image2text)
 
     # 테스트용 파라미터
@@ -127,7 +127,7 @@ def test_generate_detailed_suggestions(test_image_files, services):  # 상황, �
 def test_ocr_service_invalid_input(invalid_input):
     """OCR 서비스 에러 케이스 테스트"""
     with pytest.raises(Exception):
-        CLOVA_OCR(invalid_input)
+        ClovaOcr(invalid_input)
 
 
 @pytest.mark.parametrize(

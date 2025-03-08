@@ -6,7 +6,7 @@ from loguru import logger
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from AI.services.Generation.reply_seggestion import ReplySuggestion
-from AI.services.OCR.get_ocr_text import CLOVA_OCR
+from AI.services.OCR.clova_ocr import ClovaOcr
 from AI.services.Analysis.analyze_situation import Analyze
 from AI.services.Generation.title_suggestion import TitleSuggestion
 from AI.services.videosearch_service import VideoSearchService
@@ -18,7 +18,7 @@ test_image_files = ["./AI/OCR_Test1.png", "./AI/OCR_Test2.png", "./AI/OCR_Test3.
 situation_service = Analyze()
 reply_service = ReplySuggestion()
 title_service = TitleSuggestion()
-ocr_service = CLOVA_OCR()
+ocr_service = ClovaOcr()
 video_search_service = VideoSearchService()
 
 

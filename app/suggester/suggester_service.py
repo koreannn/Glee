@@ -7,11 +7,7 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
 
-from AI.glee_agent import (
-    generate_reply_suggestions_detail,
-    generate_reply_suggestions_accent_purpose,
-    generate_suggestions_situation,
-)
+from AI.glee_agent import GleeAgent
 from app.core.enums import SuggestionTagType
 from app.suggester.suggester_collection import SuggesterCollection
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
@@ -67,11 +63,11 @@ class SuggesterService:
         situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
     ) -> tuple[list[str], list[str]]:
         if situation and tone and usage and detail:
-            suggestions, title = generate_reply_suggestions_detail(situation, tone, usage, detail)
+            suggestions, title = GleeAgent.generate_reply_suggestions_detail(situation, tone, usage, detail)
         elif situation and tone and usage:
-            suggestions, title = generate_reply_suggestions_accent_purpose(situation, tone, usage)
+            suggestions, title = GleeAgent.generate_reply_suggestions_accent_purpose(situation, tone, usage)
         elif situation:
-            suggestions, title = generate_suggestions_situation(situation)
+            suggestions, title = GleeAgent.generate_suggestions_situation(situation)
         else:
             raise HTTPException(status_code=400, detail="Invalid Generate Suggestion Request")
         return suggestions, title

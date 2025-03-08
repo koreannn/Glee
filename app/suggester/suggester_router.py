@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Query
 
-from AI.glee_agent import analyze_situation, analyze_situation_accent_purpose
+from AI.glee_agent import GleeAgent
 from app.history.history_service import HistoryService
 from app.suggester.suggester_request import (
     GenerateSuggestionRequest,
@@ -101,11 +101,11 @@ async def analyze_images(
 
     files_data = [(file.filename, await file.read()) for file in image_files]
     if purpose == PurposeType.PHOTO_RESPONSE:
-        situation = analyze_situation(files_data)
+        situation = await GleeAgent.analyze_situation(files_data)
         tone = ""
         usage = ""
     elif purpose == PurposeType.SIMILAR_VIBE_RESPONSE:
-        situation, tone, usage = analyze_situation_accent_purpose(files_data)
+        situation, tone, usage = await GleeAgent.analyze_situation_accent_purpose(files_data)
     else:
         logger.error(f"Failed to analyze images - Invalid purpose: {purpose}")
         raise HTTPException(status_code=400, detail="Invalid purpose.")
