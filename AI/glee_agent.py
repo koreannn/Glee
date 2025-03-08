@@ -56,7 +56,7 @@ class GleeAgent:
             return "", "", ""
 
         # OCR 에이전트를 사용하여 텍스트 추출
-        image_text = cls.ocr_agent.run(image_files)
+        image_text = await cls.ocr_agent.run(image_files)
 
         # 스타일 분석 에이전트를 사용하여 스타일 분석
         style_agent = StyleAnalysisAgent()

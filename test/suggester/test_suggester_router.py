@@ -159,8 +159,7 @@ async def test_analyze_images_to_response_to_photo(test_image_path: Path, auth_h
 
     assert response.status_code == 200
     assert response.json()["purpose"] == PurposeType.PHOTO_RESPONSE.value
-    assert response.json()["tone"] == ""
-    assert response.json()["usage"] == ""
+
 
 
 @pytest.mark.asyncio

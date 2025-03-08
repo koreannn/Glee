@@ -63,11 +63,11 @@ class SuggesterService:
         situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
     ) -> tuple[list[str], list[str]]:
         if situation and tone and usage and detail:
-            suggestions, title = GleeAgent.generate_reply_suggestions_detail(situation, tone, usage, detail)
+            suggestions, title = await GleeAgent.generate_reply_suggestions_detail(situation, tone, usage, detail)
         elif situation and tone and usage:
-            suggestions, title = GleeAgent.generate_reply_suggestions_accent_purpose(situation, tone, usage)
+            suggestions, title = await GleeAgent.generate_reply_suggestions_accent_purpose(situation, tone, usage)
         elif situation:
-            suggestions, title = GleeAgent.generate_suggestions_situation(situation)
+            suggestions, title = await GleeAgent.generate_suggestions_situation(situation)
         else:
             raise HTTPException(status_code=400, detail="Invalid Generate Suggestion Request")
         return suggestions, title
