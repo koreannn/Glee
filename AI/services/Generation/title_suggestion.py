@@ -28,27 +28,26 @@ class TitleSuggestion:
         """비동기 요청을 보내고 제목을 생성"""
         headers, payload = get_headers_payloads(config_path, input_text)
 
-        try:
-            response = await client.post(self.BASE_URL, headers=headers, json=payload)
-            if response.status_code == 200:
-                title_text = ""
-                async for line in response.aiter_lines():
-                    if line and line.startswith("data:"):
-                        data_str = line[len("data:"):].strip()
-                        try:
-                            data_json = json.loads(data_str)
-                            token = data_json.get("message", {}).get("content", "")
-                            title_text += token
-                        except Exception:
-                            continue
-                return deduplicate_sentences(title_text)
-            else:
-                return f"Error: {response.status_code} - {response.text}"
-        except Exception as e:
-            logger.error(f"API 요청 중 오류 발생: {e}")
-            return f"Error: {str(e)}"
+        response = await client.post(self.BASE_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        title_text = ""
 
+        async for line in response.aiter_lines():
+            if line and line.startswith("data:"):
+                data_str = line[len("data:") :].strip()
+                try:
+                    data_json = json.loads(data_str)
+                    token = data_json.get("message", {}).get("content", "")
+                    title_text += token
+                except json.JSONDecodeError as e:
+                    logger.error(f"JSON 디코딩 오류 발생: {e}, 원본 데이터: {data_str}")
+                    continue  # JSON 파싱 오류 발생 시 무시하고 계속 진행
 
+        if not title_text:
+            logger.warning("서버 응답이 비어 있음.")
+            raise ValueError("AI 응답이 비어 있습니다.")
+
+        return deduplicate_sentences(title_text)
 
     async def generate_title_suggestions(self, input_text: str) -> list[str]:
         """비동기로 여러 제목을 생성"""

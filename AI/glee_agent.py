@@ -63,8 +63,6 @@ class GleeAgent:
         _, situation, accent, purpose = await cls.style_agent.run(image_text)
         return situation, accent, purpose
 
-
-
     # -------------------------------------------------------------------
     # [3] 상황만을 기반으로 글 제안을 생성하는 함수
     @classmethod

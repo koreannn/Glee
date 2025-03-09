@@ -66,5 +66,5 @@ class JwtHandler:
             if not user_document:
                 raise HTTPException(status_code=404, detail="User not found")
             return user_document
-        except:
+        except Exception:
             return None

@@ -90,5 +90,5 @@ class SuggesterService:
         data_list = await SuggesterCollection.find_by_text(query, user_id)
         try:
             return [SuggesterDocument(**data) for data in data_list] if data_list else []
-        except:
+        except Exception:
             raise HTTPException(status_code=404, detail="Suggestion not found")

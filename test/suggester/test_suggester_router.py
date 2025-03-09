@@ -38,7 +38,6 @@ async def test_generate_suggestion_with_situation() -> None:
     assert response.status_code == 200
 
 
-
 @pytest.mark.asyncio
 async def test_generate_suggestion_with_situation_usage_tone() -> None:
     data = {
@@ -51,8 +50,6 @@ async def test_generate_suggestion_with_situation_usage_tone() -> None:
         response = await client.post("/suggester/generate", json=data)
 
     assert response.status_code == 200
-
-
 
 
 @pytest.mark.asyncio

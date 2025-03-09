@@ -36,6 +36,5 @@ async def test_get_histories_by_user(exists_history: HistoryDocument) -> None:
 async def test_delete_history(exists_history: HistoryDocument) -> None:
     success = await HistoryService.delete_history(str(exists_history.id))
 
-    assert success == True
+    assert success
     assert await HistoryService.get_histories_by_user(exists_history.user_id) == []
-    ...

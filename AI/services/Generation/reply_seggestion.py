@@ -34,10 +34,10 @@ class ReplySuggestion:
             if response.status_code == 200:
                 return await self._process_stream_response(response)
             else:
-                return f"Error: {response.status_code} - {response.text}"
+                raise Exception(f"Error: {response.status_code} - {response.text}")
         except Exception as e:
             logger.error(f"API 요청 중 오류 발생: {e}")
-            return f"Error: {str(e)}"
+            raise Exception(f"Error: {str(e)}")
 
     async def generate_suggestions(self, input_text: str, config_name: str, num_suggestions: int = 3) -> list[str]:
         """비동기로 여러 개의 답변을 생성"""
