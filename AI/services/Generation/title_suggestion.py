@@ -1,10 +1,11 @@
+import asyncio
 import os
-import requests
+import httpx
 import json
 from pathlib import Path
-
+from httpx import AsyncClient
 from loguru import logger
-from AI.utils.get_headers_payloads import get_headers_payloads
+
 from AI.utils.get_headers_payloads import get_headers_payloads
 from app.core.settings import settings
 
@@ -23,39 +24,42 @@ class TitleSuggestion:
 
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-    def _generate_title_suggestions(self, input_text: str) -> list[str]:
-        # (2) .env에서 불러오기
-        BASE_URL = self.BASE_URL
-        # BEARER_TOKEN = self.BEARER_TOKEN
-        # REQUEST_ID = self.REQUEST_ID
+    async def fetch_title(self, client: AsyncClient, input_text: str, config_path: str) -> str:
+        """비동기 요청을 보내고 제목을 생성"""
+        headers, payload = get_headers_payloads(config_path, input_text)
 
-        BASE_DIR = self.BASE_DIR
-
-        # config 파일의 절대 경로 설정
-        config_path = BASE_DIR / "config" / "config_Title_Suggestion.yaml"
-        headers, payload = get_headers_payloads(str(config_path), input_text)
-        # config = load_config(config_path)
-
-        titles = []
-
-        for _ in range(3):  # 새로 고침 하면 새로운 생성을 만들어내도록 수정
-            headers, payload = get_headers_payloads(str(config_path), input_text)
-
-            response = requests.post(BASE_URL, headers=headers, json=payload, stream=True)
+        try:
+            response = await client.post(self.BASE_URL, headers=headers, json=payload)
             if response.status_code == 200:
                 title_text = ""
-                for line in response.iter_lines(decode_unicode=True):
+                async for line in response.aiter_lines():
                     if line and line.startswith("data:"):
-                        data_str = line[len("data:") :].strip()
+                        data_str = line[len("data:"):].strip()
                         try:
                             data_json = json.loads(data_str)
                             token = data_json.get("message", {}).get("content", "")
                             title_text += token
                         except Exception:
                             continue
-                title_text = deduplicate_sentences(title_text)
-                titles.append(title_text)
+                return deduplicate_sentences(title_text)
             else:
-                titles.append(f"Error: {response.status_code} - {response.text}")
-            logger.info(f"생성된 내용:\n {title_text}")
+                return f"Error: {response.status_code} - {response.text}"
+        except Exception as e:
+            logger.error(f"API 요청 중 오류 발생: {e}")
+            return f"Error: {str(e)}"
+
+
+
+    async def generate_title_suggestions(self, input_text: str) -> list[str]:
+        """비동기로 여러 제목을 생성"""
+        BASE_DIR = self.BASE_DIR
+        config_path = str(BASE_DIR / "config" / "config_Title_Suggestion.yaml")
+
+        async with httpx.AsyncClient() as client:
+            tasks = [self.fetch_title(client, input_text, config_path) for _ in range(3)]
+            titles = await asyncio.gather(*tasks)
+
+        for title in titles:
+            logger.info(f"생성된 제목: {title}")
+
         return titles

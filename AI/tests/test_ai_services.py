@@ -86,7 +86,7 @@ def test_generate_suggestions(test_image_files, services):  # 상황 -> 답변 �
     assert all(isinstance(s, str) for s in suggestions)
 
     # 제목 생성
-    titles = services["title"]._generate_title_suggestions(situation)
+    titles = services["title"].generate_title_suggestions(situation)
     assert isinstance(titles, list)
     assert len(titles) > 0
     assert all(isinstance(t, str) for t in titles)
@@ -110,7 +110,7 @@ def test_generate_detailed_suggestions(test_image_files, services):  # 상황, �
     assert all(isinstance(s, str) for s in suggestions)
 
     # 제목 생성
-    titles = services["title"]._generate_title_suggestions(situation)
+    titles = services["title"].generate_title_suggestions(situation)
     assert isinstance(titles, list)
     assert len(titles) > 0
     assert all(isinstance(t, str) for t in titles)
@@ -150,6 +150,6 @@ def test_services_invalid_input(services, invalid_text):
     assert len(suggestions) == 0 or all(isinstance(s, str) for s in suggestions)
 
     # 제목 생성 테스트
-    titles = services["title"]._generate_title_suggestions(invalid_text)
+    titles = services["title"].generate_title_suggestions(invalid_text)
     assert isinstance(titles, list)
     assert len(titles) == 0 or all(isinstance(t, str) for t in titles)

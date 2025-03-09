@@ -21,7 +21,7 @@ class StyleAnalysisAgent:
 
         return situation, accent, purpose
 
-    def run(self, input_text: str):
-        style_result = situation_service._make_api_request("config_Style_Analysis.yaml", input_text, random_seed=True)
+    async def run(self, input_text: str):
+        style_result = await situation_service.make_api_request("config_Style_Analysis.yaml", input_text, random_seed=True)
         situation, accent, purpose = self.parse_style_analysis(style_result)
         return style_result, situation, accent, purpose

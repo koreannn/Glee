@@ -11,7 +11,7 @@ from app.user.user_document import UserDocument
 
 
 @pytest.mark.asyncio
-async def test_generate_suggestion() -> None:
+async def test_generate_suggestion_with_tone_usage_detail() -> None:
     data = {
         "situation": "카카오톡으로 사과하려는 상황이야",
         "tone": "친절하게",
@@ -22,6 +22,37 @@ async def test_generate_suggestion() -> None:
         response = await client.post("/suggester/generate", json=data)
 
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_generate_suggestion_with_situation() -> None:
+    data = {
+        "situation": "카카오톡으로 사과하려는 상황이야",
+        "tone": "",
+        "usage": "",
+        "detail": "",
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post("/suggester/generate", json=data)
+
+    assert response.status_code == 200
+
+
+
+@pytest.mark.asyncio
+async def test_generate_suggestion_with_situation_usage_tone() -> None:
+    data = {
+        "situation": "카카오톡으로 사과하려는 상황이야",
+        "tone": "친절하게",
+        "usage": "사과",
+        "detail": "",
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post("/suggester/generate", json=data)
+
+    assert response.status_code == 200
+
+
 
 
 @pytest.mark.asyncio

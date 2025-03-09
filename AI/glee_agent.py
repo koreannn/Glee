@@ -47,9 +47,7 @@ class GleeAgent:
         image_text = await cls.ocr_agent.run(image_files)
 
         # 상황 요약 에이전트를 사용하여 상황 분석
-
-        situation_string = cls.summarizer_agent.run(image_text)
-
+        situation_string = await cls.summarizer_agent.run(image_text)
         return situation_string
 
     # [2] 이미지파일 (최대 4개) 입력 -> 상황, 말투, 용도를 뱉어내는 함수
@@ -62,15 +60,16 @@ class GleeAgent:
         image_text = await cls.ocr_agent.run(image_files)
 
         # 스타일 분석 에이전트를 사용하여 스타일 분석
-        _, situation, accent, purpose = cls.style_agent.run(image_text)
-
+        _, situation, accent, purpose = await cls.style_agent.run(image_text)
         return situation, accent, purpose
+
+
 
     # -------------------------------------------------------------------
     # [3] 상황만을 기반으로 글 제안을 생성하는 함수
     @classmethod
     async def generate_suggestions_situation(cls, situation: str) -> tuple[str, list[str]]:
-        result = cls.orchestrator_agent.run_reply_mode(situation)
+        result = await cls.orchestrator_agent.run_reply_mode(situation)
         return result["replies"], result["titles"]
 
     # -------------------------------------------------------------------
@@ -80,7 +79,7 @@ class GleeAgent:
         cls, situation: str, accent: str, purpose: str
     ) -> tuple[list[str], list[str]]:
 
-        result = cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, "")
+        result = await cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, "")
         return result["replies"], result["titles"]
 
     # -------------------------------------------------------------------
@@ -90,5 +89,5 @@ class GleeAgent:
         cls, situation: str, accent: str, purpose: str, detailed_description: str
     ) -> tuple[list[str], list[str]]:
 
-        result = cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, detailed_description)
+        result = await cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, detailed_description)
         return result["replies"], result["titles"]
