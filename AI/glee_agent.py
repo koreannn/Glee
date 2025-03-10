@@ -89,3 +89,12 @@ class GleeAgent:
 
         result = await cls.orchestrator_agent.run_manual_mode(situation, accent, purpose, detailed_description)
         return result["replies"], result["titles"]
+
+    # -------------------------------------------------------------------
+    # [6] 상황, 말투, 용도, 상세 설명, 글 길이를 기반으로 글 제안을 생성하는 함수
+    #  length : 짧게, 길게, 적당함 (short, long, moderate) 예정
+    @classmethod
+    async def generate_reply_suggestions_detail_length(
+            cls, situation: str, accent: str, purpose: str, detailed_description: str, length: str
+    ) -> tuple[list[str], list[str]]:
+        ...
