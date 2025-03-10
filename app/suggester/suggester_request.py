@@ -5,7 +5,7 @@ from app.core.enums import SuggestionTagType, ToneType
 
 class GenerateSuggestionRequest(BaseModel):
     situation: str
-    tone: ToneType
+    tone: str
     usage: str
     detail: str
 

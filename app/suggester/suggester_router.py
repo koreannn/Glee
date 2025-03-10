@@ -147,7 +147,7 @@ async def generate_suggestion(
     logger.info(f"Generating suggestions - User: {user.nickname if user else 'Guest'}, Request: {request}")
 
     suggestions, titles = await SuggesterService.generate_suggestions(
-        situation=request.situation, tone=request.tone.value, usage=request.usage, detail=request.detail
+        situation=request.situation, tone=request.tone, usage=request.usage, detail=request.detail
     )
 
     result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]

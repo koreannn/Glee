@@ -30,20 +30,36 @@ class ReplySuggestion:
         )
 
         try:
-            response = await client.post(self.BASE_URL, headers=headers, json=payload)
+            response = await client.post(self.BASE_URL, headers=headers, json=payload, timeout=10.0)  # ⏳ 타임아웃 10초 설정
+
+            # ✅ API 응답 로깅 추가
+            logger.info(f"API 응답 상태: {response.status_code}, 본문: {response.text}")
+
             if response.status_code == 200:
                 return await self._process_stream_response(response)
             else:
                 raise Exception(f"Error: {response.status_code} - {response.text}")
+
+        except httpx.ReadTimeout:
+            logger.error(f"⏳ API 요청이 시간 초과됨 (Timeout): {self.BASE_URL}")
+            raise Exception(f"Timeout Error: {self.BASE_URL}")
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"❌ HTTP 에러 발생: {e.response.status_code} - {e.response.text}")
+            raise Exception(f"HTTP Error: {e.response.status_code} - {e.response.text}")
+
         except Exception as e:
-            logger.error(f"API 요청 중 오류 발생: {e}")
-            raise Exception(f"Error: {str(e)}")
+            logger.error(f"🚨 API 요청 중 예외 발생: {str(e)}")
+            raise Exception(f"API Error: {str(e)}")
 
     async def generate_suggestions(self, input_text: str, config_name: str, num_suggestions: int = 3) -> list[str]:
-        """비동기로 여러 개의 답변을 생성"""
+        """비동기로 여러 개의 답변을 생성 (요청 간 0.1초 딜레이 추가)"""
         async with httpx.AsyncClient() as client:
-            tasks = [self._fetch_reply(client, input_text, config_name) for _ in range(num_suggestions)]
-            suggestions = await asyncio.gather(*tasks)
+            suggestions = []
+            for _ in range(num_suggestions):
+                suggestion = await self._fetch_reply(client, input_text, config_name)
+                suggestions.append(suggestion)
+                await asyncio.sleep(0.01)  # 🔥 각 요청 사이에 0.1초 대기
 
         for suggestion in suggestions:
             logger.info(f"생성된 답변: {suggestion}")
