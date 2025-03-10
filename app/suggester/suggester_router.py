@@ -34,7 +34,6 @@ async def get_suggestion_counts(
     user: UserDocument | None = Depends(JwtHandler.get_optional_current_user),  # ✅ JWT 인증된 사용자
 ) -> GetSuggestionCounts:
 
-
     my_suggestion_count = 0
     if user:
         logger.info(f"Fetching suggestion counts for user: {user.id}")
@@ -42,9 +41,7 @@ async def get_suggestion_counts(
 
     recommended_suggestion_count = await SuggesterService.get_recommend_suggestion_count()
 
-    logger.info(
-        f" My suggestions: {my_suggestion_count}, Recommended suggestions: {recommended_suggestion_count}"
-    )
+    logger.info(f" My suggestions: {my_suggestion_count}, Recommended suggestions: {recommended_suggestion_count}")
 
     return GetSuggestionCounts(
         user_suggestion_count=my_suggestion_count,
@@ -150,7 +147,7 @@ async def generate_suggestion(
     logger.info(f"Generating suggestions - User: {user.nickname if user else 'Guest'}, Request: {request}")
 
     suggestions, titles = await SuggesterService.generate_suggestions(
-        situation=request.situation, tone=request.tone, usage=request.usage, detail=request.detail
+        situation=request.situation, tone=request.tone.value, usage=request.usage, detail=request.detail
     )
 
     result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]

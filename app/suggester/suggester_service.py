@@ -8,7 +8,7 @@ from bson import ObjectId
 from fastapi import HTTPException
 
 from AI.glee_agent import GleeAgent
-from app.core.enums import SuggestionTagType, ToneType
+from app.core.enums import SuggestionTagType
 from app.suggester.suggester_collection import SuggesterCollection
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 
@@ -61,16 +61,12 @@ class SuggesterService:
 
     @staticmethod
     async def generate_suggestions(
-        situation: str, tone: ToneType | None = None, usage: str | None = None, detail: str | None = None
+        situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
     ) -> tuple[list[str], list[str]]:
         if situation and tone and usage and detail:
-            suggestions, title = await GleeAgent.generate_reply_suggestions_detail(
-                situation, str(tone.value), usage, detail
-            )
+            suggestions, title = await GleeAgent.generate_reply_suggestions_detail(situation, tone, usage, detail)
         elif situation and tone and usage:
-            suggestions, title = await GleeAgent.generate_reply_suggestions_accent_purpose(
-                situation, str(tone.value), usage
-            )
+            suggestions, title = await GleeAgent.generate_reply_suggestions_accent_purpose(situation, tone, usage)
         elif situation:
             suggestions, title = await GleeAgent.generate_suggestions_situation(situation)
         else:

@@ -6,6 +6,7 @@ class ToneType(Enum):
     SOCIAL = "social"
     FRIENDLY = "friendly"
     LOVELY = "lovely"
+    DEFAULT = ""
 
 
 class PurposeType(Enum):
