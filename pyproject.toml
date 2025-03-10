@@ -43,7 +43,7 @@ target-version = ["py311"]
 
 [tool.mypy]
 plugins = "pydantic.mypy"
-python_version = ">=3.11,<4.0"
+python_version = "3.11"
 strict = true
 exclude = 'airflow/.*'
 

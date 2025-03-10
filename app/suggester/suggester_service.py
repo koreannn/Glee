@@ -8,7 +8,7 @@ from bson import ObjectId
 from fastapi import HTTPException
 
 from AI.glee_agent import GleeAgent
-from app.core.enums import SuggestionTagType
+from app.core.enums import SuggestionTagType, ToneType
 from app.suggester.suggester_collection import SuggesterCollection
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
 
@@ -17,7 +17,7 @@ class SuggesterService:
 
     @staticmethod
     async def create_suggestion(
-        user_id: ObjectId, title: str, suggestion: str, tag: list[SuggestionTagType]
+        user_id: ObjectId, title: str, suggestion: str, tag: list[SuggestionTagType], recommend: bool = False
     ) -> SuggesterDocument:
         """Suggestion 저장하기"""
 
@@ -29,6 +29,7 @@ class SuggesterService:
             suggestion=suggestion,
             updated_at=datetime.now(),
             created_at=datetime.now(),
+            recommend=recommend,
         )
         return await SuggesterCollection.create(suggestion_dto)
 
@@ -60,12 +61,16 @@ class SuggesterService:
 
     @staticmethod
     async def generate_suggestions(
-        situation: str, tone: str | None = None, usage: str | None = None, detail: str | None = None
+        situation: str, tone: ToneType | None = None, usage: str | None = None, detail: str | None = None
     ) -> tuple[list[str], list[str]]:
         if situation and tone and usage and detail:
-            suggestions, title = await GleeAgent.generate_reply_suggestions_detail(situation, tone, usage, detail)
+            suggestions, title = await GleeAgent.generate_reply_suggestions_detail(
+                situation, str(tone.value), usage, detail
+            )
         elif situation and tone and usage:
-            suggestions, title = await GleeAgent.generate_reply_suggestions_accent_purpose(situation, tone, usage)
+            suggestions, title = await GleeAgent.generate_reply_suggestions_accent_purpose(
+                situation, str(tone.value), usage
+            )
         elif situation:
             suggestions, title = await GleeAgent.generate_suggestions_situation(situation)
         else:
@@ -92,3 +97,15 @@ class SuggesterService:
             return [SuggesterDocument(**data) for data in data_list] if data_list else []
         except Exception:
             raise HTTPException(status_code=404, detail="Suggestion not found")
+
+    @staticmethod
+    async def get_user_suggestion_count(user_id: ObjectId) -> int:
+        """특정 사용자의 AI 추천 데이터 개수 가져오기"""
+        count = await SuggesterCollection.count_by_user(user_id)
+        return count
+
+    @staticmethod
+    async def get_recommend_suggestion_count() -> int:
+        """추천 AI 제안 개수 가져오기"""
+        count = await SuggesterCollection.count_recommend_documents()
+        return count

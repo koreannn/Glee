@@ -108,3 +108,34 @@ async def test_search_suggestions(exists_suggestion: SuggesterDocument, test_use
     assert "Test" in suggestions[0].suggestion
     assert suggestions[0].user_id == test_user.id
     assert suggestions[0].tag == tags
+
+
+@pytest.mark.asyncio
+async def test_count(exists_suggestion: SuggesterDocument, test_user: UserDocument) -> None:
+    """추천 데이터를 검색하는 서비스 로직 테스트"""
+
+    suggestions = await SuggesterService.find_suggestions_by_text("Test", test_user.id)
+    tags = [tag.value for tag in exists_suggestion.tag]
+    assert len(suggestions) > 0
+    assert "Test" in suggestions[0].suggestion
+    assert suggestions[0].user_id == test_user.id
+    assert suggestions[0].tag == tags
+
+
+@pytest.mark.asyncio
+async def test_get_suggestion_counts(exists_suggestion: SuggesterDocument) -> None:
+    """추천 데이터를 검색하는 서비스 로직 테스트"""
+
+    user_id = ObjectId()
+    tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
+    suggestion = "Test AI generated suggestion"
+    title = "Test title"
+
+    await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
+    await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
+
+    my_suggestion_count = await SuggesterService.get_user_suggestion_count(user_id)
+    recommend_suggestion_count = await SuggesterService.get_recommend_suggestion_count()
+
+    assert my_suggestion_count == 2
+    assert recommend_suggestion_count == 1

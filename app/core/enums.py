@@ -1,6 +1,13 @@
 from enum import Enum
 
 
+class ToneType(Enum):
+    WORK = "work"
+    SOCIAL = "social"
+    FRIENDLY = "friendly"
+    LOVELY = "lovely"
+
+
 class PurposeType(Enum):
     PHOTO_RESPONSE = "Response to photo"
     SIMILAR_VIBE_RESPONSE = "Response with a similar vibe"

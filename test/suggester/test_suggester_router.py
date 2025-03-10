@@ -5,7 +5,7 @@ from unittest.mock import patch, AsyncMock
 from bson import ObjectId
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.core.enums import PurposeType, SuggestionTagType
+from app.core.enums import PurposeType, SuggestionTagType, ToneType
 from app.suggester.suggester_document import SuggesterDocument
 from app.user.user_document import UserDocument
 
@@ -14,7 +14,7 @@ from app.user.user_document import UserDocument
 async def test_generate_suggestion_with_tone_usage_detail() -> None:
     data = {
         "situation": "카카오톡으로 사과하려는 상황이야",
-        "tone": "친절하게",
+        "tone": ToneType.FRIENDLY.value,
         "usage": "사과",
         "detail": "앞으로도 친하게 지내고 싶은 친구야",
     }
@@ -28,9 +28,6 @@ async def test_generate_suggestion_with_tone_usage_detail() -> None:
 async def test_generate_suggestion_with_situation() -> None:
     data = {
         "situation": "카카오톡으로 사과하려는 상황이야",
-        "tone": "",
-        "usage": "",
-        "detail": "",
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/suggester/generate", json=data)
@@ -42,9 +39,8 @@ async def test_generate_suggestion_with_situation() -> None:
 async def test_generate_suggestion_with_situation_usage_tone() -> None:
     data = {
         "situation": "카카오톡으로 사과하려는 상황이야",
-        "tone": "친절하게",
+        "tone": ToneType.FRIENDLY.value,
         "usage": "사과",
-        "detail": "",
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/suggester/generate", json=data)
@@ -287,3 +283,20 @@ async def test_search(exists_suggestion: SuggesterDocument, auth_header: dict[st
 
     for suggestion in data["suggestions"]:
         assert "Test" in suggestion["suggestion"], "Suggestion content should contain 'Test'"
+
+
+@pytest.mark.asyncio
+async def test_get_suggestion_counts(exists_suggestion: SuggesterDocument, auth_header: dict[str, str]) -> None:
+    """본문에 'Test' 단어가 포함된 제안 검색 테스트"""
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get(
+            "/suggester/count",
+            headers=auth_header,
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "user_suggestion_count" in data and "recommended_suggestion_count" in data
+    assert int(data["user_suggestion_count"]) > 0
+    assert int(data["recommended_suggestion_count"]) > 0

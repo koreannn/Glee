@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 
-from app.core.enums import SuggestionTagType
+from app.core.enums import SuggestionTagType, ToneType
 
 
 class GenerateSuggestionRequest(BaseModel):
     situation: str
-    tone: str | None
-    usage: str | None
-    detail: str | None
+    tone: ToneType | None = None
+    usage: str | None = None
+    detail: str | None = None
 
 
 class SuggestionRequest(BaseModel):

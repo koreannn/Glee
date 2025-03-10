@@ -17,6 +17,7 @@ from app.suggester.suggester_response import (
     GenerateSuggestionsResponse,
     SuggestionsResponse,
     SearchSuggestionResponse,
+    GetSuggestionCounts,
 )
 from app.core.enums import PurposeType
 from app.suggester.suggester_service import SuggesterService
@@ -26,6 +27,29 @@ from app.utils.models.suggestion import Suggestion
 from loguru import logger
 
 router = APIRouter(prefix="/suggester", tags=["suggester"])
+
+
+@router.get("/count", response_model=GetSuggestionCounts, summary="내 제안 개수 및 추천 제안 개수 가져오기")
+async def get_suggestion_counts(
+    user: UserDocument | None = Depends(JwtHandler.get_optional_current_user),  # ✅ JWT 인증된 사용자
+) -> GetSuggestionCounts:
+
+
+    my_suggestion_count = 0
+    if user:
+        logger.info(f"Fetching suggestion counts for user: {user.id}")
+        my_suggestion_count = await SuggesterService.get_user_suggestion_count(user.id)
+
+    recommended_suggestion_count = await SuggesterService.get_recommend_suggestion_count()
+
+    logger.info(
+        f" My suggestions: {my_suggestion_count}, Recommended suggestions: {recommended_suggestion_count}"
+    )
+
+    return GetSuggestionCounts(
+        user_suggestion_count=my_suggestion_count,
+        recommended_suggestion_count=recommended_suggestion_count,
+    )
 
 
 @router.get("/search", response_model=SearchSuggestionResponse, summary="특정 단어가 포함된 제안 검색")
@@ -99,7 +123,8 @@ async def analyze_images(
         logger.error("User tried to upload 0 images")
         raise HTTPException(status_code=400, detail="You must upload at least one image.")
 
-    files_data = [(file.filename, await file.read()) for file in image_files]
+    files_data = [(file.filename, await file.read()) for file in image_files if file and file.filename]
+
     if purpose == PurposeType.PHOTO_RESPONSE:
         situation = await GleeAgent.analyze_situation(files_data)
         tone = ""

@@ -66,7 +66,7 @@ class GleeAgent:
     # -------------------------------------------------------------------
     # [3] 상황만을 기반으로 글 제안을 생성하는 함수
     @classmethod
-    async def generate_suggestions_situation(cls, situation: str) -> tuple[str, list[str]]:
+    async def generate_suggestions_situation(cls, situation: str) -> tuple[list[str], list[str]]:
         result = await cls.orchestrator_agent.run_reply_mode(situation)
         return result["replies"], result["titles"]
 
