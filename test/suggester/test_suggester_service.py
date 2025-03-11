@@ -11,10 +11,10 @@ from app.user.user_document import UserDocument
 
 @pytest.mark.asyncio
 async def test_create_suggestion() -> None:
-    """AI 추천 데이터를 저장하는 서비스 로직 테스트"""
+    """ai 추천 데이터를 저장하는 서비스 로직 테스트"""
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
-    suggestion = "Test AI generated suggestion"
+    suggestion = "Test ai generated suggestion"
     title = "Test title"
 
     document = await SuggesterService.create_suggestion(user_id, title, suggestion, tag)
@@ -26,7 +26,7 @@ async def test_create_suggestion() -> None:
 
 @pytest.mark.asyncio
 async def test_get_suggestion_by_id() -> None:
-    """저장된 AI 추천 데이터를 가져오는 서비스 로직 테스트"""
+    """저장된 ai 추천 데이터를 가져오는 서비스 로직 테스트"""
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "Fetching from DB"
@@ -42,7 +42,7 @@ async def test_get_suggestion_by_id() -> None:
 
 @pytest.mark.asyncio
 async def test_delete_suggestion() -> None:
-    """저장된 AI 추천 데이터를 삭제하는 서비스 로직 테스트"""
+    """저장된 ai 추천 데이터를 삭제하는 서비스 로직 테스트"""
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "This will be deleted"
@@ -58,7 +58,7 @@ async def test_delete_suggestion() -> None:
 
 @pytest.mark.asyncio
 async def test_update_suggestion_tags() -> None:
-    """저장된 AI 추천 데이터를 삭제하는 서비스 로직 테스트"""
+    """저장된 ai 추천 데이터를 삭제하는 서비스 로직 테스트"""
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     update_tag = [SuggestionTagType.SCHOOL, SuggestionTagType.COMFORT]
@@ -74,7 +74,7 @@ async def test_update_suggestion_tags() -> None:
 
 @pytest.mark.asyncio
 async def test_update_suggestion() -> None:
-    """저장된 AI 추천 데이터를 삭제하는 서비스 로직 테스트"""
+    """저장된 ai 추천 데이터를 삭제하는 서비스 로직 테스트"""
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
     suggestion = "update suggestion"
@@ -128,7 +128,7 @@ async def test_get_suggestion_counts(exists_suggestion: SuggesterDocument) -> No
 
     user_id = ObjectId()
     tag = [SuggestionTagType.APOLOGY, SuggestionTagType.COMFORT]
-    suggestion = "Test AI generated suggestion"
+    suggestion = "Test ai generated suggestion"
     title = "Test title"
 
     await SuggesterService.create_suggestion(user_id, title, suggestion, tag)

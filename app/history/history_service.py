@@ -21,7 +21,7 @@ class HistoryService:
 
     @staticmethod
     async def get_histories_by_user(user_id: ObjectId) -> list[HistoryDocument]:
-        """특정 사용자의 모든 AI 추천 데이터 가져오기"""
+        """특정 사용자의 모든 ai 추천 데이터 가져오기"""
         data_list = await HistoryCollection.get_by_user(user_id)
 
         history_documents = []
@@ -43,5 +43,5 @@ class HistoryService:
 
     @staticmethod
     async def delete_history(history_id: str) -> bool:
-        """AI 추천 데이터 삭제"""
+        """ai 추천 데이터 삭제"""
         return await HistoryCollection.delete(history_id)

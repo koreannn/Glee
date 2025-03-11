@@ -7,7 +7,7 @@
 # root_dir = current_dir.parent.parent.parent
 # sys.path.insert(0, str(root_dir))
 #
-# from AI.services.agent.orchestrator_agent import OrchestratorAgent
+# from ai.services.agent.orchestrator_agent import OrchestratorAgent
 # from loguru import logger
 #
 #

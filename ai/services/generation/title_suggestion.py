@@ -6,10 +6,10 @@ from pathlib import Path
 from httpx import AsyncClient, ConnectTimeout, ReadTimeout
 from loguru import logger
 
-from AI.utils.get_headers_payloads import get_headers_payloads
+from ai.utils.get_headers_payloads import get_headers_payloads
 from app.core.settings import settings
 
-from AI.utils.deduplicate_sentence import deduplicate_sentences
+from ai.utils.deduplicate_sentence import deduplicate_sentences
 
 
 class TitleSuggestion:

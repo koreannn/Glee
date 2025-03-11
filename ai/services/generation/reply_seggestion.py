@@ -9,8 +9,8 @@ from loguru import logger
 from httpx import ConnectTimeout, ReadTimeout
 
 from app.core.settings import settings
-from AI.utils.get_headers_payloads import get_headers_payloads
-from AI.utils.deduplicate_sentence import deduplicate_sentences
+from ai.utils.get_headers_payloads import get_headers_payloads
+from ai.utils.deduplicate_sentence import deduplicate_sentences
 
 
 class ReplySuggestion:
@@ -34,7 +34,7 @@ class ReplySuggestion:
             return yaml.safe_load(file)
 
     async def _fetch_reply(self, client: httpx.AsyncClient, input_text: str, config_name: str) -> str:
-        """비동기적으로 AI API 요청을 보내고 응답을 처리"""
+        """비동기적으로 ai API 요청을 보내고 응답을 처리"""
         headers, payload = get_headers_payloads(
             str(self.BASE_DIR / "config" / config_name), input_text, random_seed=True
         )

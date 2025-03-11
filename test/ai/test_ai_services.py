@@ -3,14 +3,14 @@
 # from typing import List
 #
 # from loguru import logger
-# from AI.services.ocr.clova_ocr import ClovaOcr
-# from AI.services.analysis.analyze_situation import Analyze
-# from AI.services.generation.reply_seggestion import ReplySuggestion
-# from AI.services.generation.title_suggestion import TitleSuggestion
+# from ai.services.ocr.clova_ocr import ClovaOcr
+# from ai.services.analysis.analyze_situation import Analyze
+# from ai.services.generation.reply_seggestion import ReplySuggestion
+# from ai.services.generation.title_suggestion import TitleSuggestion
 #
 # """
-# python3 -m pytest AI/tests/ -v: 더 자세한 로그를 보고싶을떄 (verbose)
-# python3 -m pytest AI/tests/ -v -s: 로깅 정보를 함께 보고싶을 때
+# python3 -m pytest ai/tests/ -v: 더 자세한 로그를 보고싶을떄 (verbose)
+# python3 -m pytest ai/tests/ -v -s: 로깅 정보를 함께 보고싶을 때
 # 또는
 # pytest tests/test_ai_services.py -v
 # pytest tests/test_ai_services.py -v -s

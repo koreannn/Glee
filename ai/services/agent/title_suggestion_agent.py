@@ -1,4 +1,4 @@
-from AI.utils.services import title_service
+from ai.utils.services import title_service
 
 
 class TitleSuggestionAgent:

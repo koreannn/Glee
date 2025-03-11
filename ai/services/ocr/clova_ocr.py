@@ -8,7 +8,7 @@ import httpx
 
 from loguru import logger
 
-from AI.utils.image_dto import ImageDto
+from ai.utils.image_dto import ImageDto
 from app.core.settings import settings
 
 

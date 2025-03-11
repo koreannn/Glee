@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Query
 
-from AI.glee_agent import GleeAgent
+from ai.glee_agent import GleeAgent
 from app.history.history_service import HistoryService
 from app.suggester.suggester_request import (
     GenerateSuggestionRequest,
@@ -100,7 +100,7 @@ async def get_recommend_suggestions(
 
 @router.post(
     "/analyze/image",
-    summary="최대 사진 4장까지 보내면 AI 상황을 분석하여 대답함",
+    summary="최대 사진 4장까지 보내면 ai 상황을 분석하여 대답함",
     response_model=AnalyzeImagesConversationResponse,
 )
 async def analyze_images(
@@ -138,7 +138,7 @@ async def analyze_images(
 
 @router.post(
     "/generate",
-    summary="상황, 말투, 용도, 상세 정보를 받아 AI 글을 생성하여 반환",
+    summary="상황, 말투, 용도, 상세 정보를 받아 ai 글을 생성하여 반환",
     response_model=GenerateSuggestionsResponse,
 )
 async def generate_suggestion(
@@ -164,7 +164,7 @@ async def generate_suggestion(
 
 @router.post(
     "/regenerate",
-    summary="기존 생성된 글과 추가 정보를 받아 AI 글을 다시 생성하여 반환",
+    summary="기존 생성된 글과 추가 정보를 받아 ai 글을 다시 생성하여 반환",
     response_model=GenerateSuggestionsResponse,
 )
 async def regenerate_suggestion(

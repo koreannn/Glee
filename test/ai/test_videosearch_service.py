@@ -10,7 +10,7 @@
 # root_dir = current_dir.parent.parent
 # sys.path.insert(0, str(root_dir))
 #
-# from AI.services.videosearch_service import VideoSearchService, TranscriptionVectorStore
+# from ai.services.videosearch_service import VideoSearchService, TranscriptionVectorStore
 #
 #
 # @pytest.fixture

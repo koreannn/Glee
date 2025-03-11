@@ -1,10 +1,10 @@
 import os
 import sys
 from dotenv import load_dotenv
-from AI.services.agent.ocr_agent import OcrAgent
-from AI.services.agent.orchestrator_agent import OrchestratorAgent
-from AI.services.agent.style_analysis_agent import StyleAnalysisAgent
-from AI.services.agent.summarizer_agent import SummarizerAgent
+from ai.services.agent.ocr_agent import OcrAgent
+from ai.services.agent.orchestrator_agent import OrchestratorAgent
+from ai.services.agent.style_analysis_agent import StyleAnalysisAgent
+from ai.services.agent.summarizer_agent import SummarizerAgent
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

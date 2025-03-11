@@ -1,4 +1,4 @@
-from AI.utils.services import situation_service
+from ai.utils.services import situation_service
 
 
 class SummarizerAgent:

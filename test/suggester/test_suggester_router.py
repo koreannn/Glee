@@ -54,7 +54,7 @@ async def test_generate_suggestion_with_situation_usage_tone() -> None:
 
 @pytest.mark.asyncio
 async def test_save_suggestion(auth_header: dict[str, str]) -> None:
-    """유저가 생성한 AI 글제안 - 저장"""
+    """유저가 생성한 ai 글제안 - 저장"""
 
     data = {"title": "Test Title", "tags": [SuggestionTagType.APOLOGY.value], "suggestion": "This is a test suggestion"}
 
@@ -80,7 +80,7 @@ async def test_save_suggestion(auth_header: dict[str, str]) -> None:
 
 @pytest.mark.asyncio
 async def test_get_suggestion(exists_suggestion: SuggesterDocument, auth_header: dict[str, str]) -> None:
-    """ID를 기반으로 AI 추천 데이터 가져오기"""
+    """ID를 기반으로 ai 추천 데이터 가져오기"""
 
     with patch(
         "app.suggester.suggester_service.SuggesterService.get_suggestion_by_id", new_callable=AsyncMock

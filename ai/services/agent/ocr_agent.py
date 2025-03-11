@@ -5,10 +5,10 @@ from typing import List, Tuple
 from loguru import logger
 
 
-from AI.services.agent.image_pre_processor import ImagePreprocessor
-from AI.services.agent.ocr_post_processing_agent import OcrPostProcessingAgent
-from AI.utils.image_dto import ImageDto
-from AI.utils.services import ocr_service
+from ai.services.agent.image_pre_processor import ImagePreprocessor
+from ai.services.agent.ocr_post_processing_agent import OcrPostProcessingAgent
+from ai.utils.image_dto import ImageDto
+from ai.utils.services import ocr_service
 
 
 class OcrAgent:

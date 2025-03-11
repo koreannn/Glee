@@ -1,4 +1,4 @@
-from AI.utils.services import reply_service
+from ai.utils.services import reply_service
 
 
 class ReplySuggestionAgent:

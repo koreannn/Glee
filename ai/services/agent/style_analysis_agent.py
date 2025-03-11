@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from AI.utils.services import situation_service
+from ai.utils.services import situation_service
 
 
 class StyleAnalysisAgent:

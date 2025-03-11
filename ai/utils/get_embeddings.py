@@ -1,4 +1,4 @@
-# # AI/utils/get_embeddings.py
+# # ai/utils/get_embeddings.py
 #
 # import os
 # from typing import List, Optional, Dict, Any

@@ -3,7 +3,7 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
 
-from AI.glee_agent import GleeAgent
+from ai.glee_agent import GleeAgent
 from app.core.enums import SuggestionTagType
 from app.suggester.suggester_collection import SuggesterCollection
 from app.suggester.suggester_document import SuggesterDocument, SuggesterDTO
@@ -31,7 +31,7 @@ class SuggesterService:
 
     @staticmethod
     async def get_suggestion_by_id(suggestion_id: str) -> SuggesterDocument:
-        """ID를 기반으로 AI 추천 데이터 가져오기"""
+        """ID를 기반으로 ai 추천 데이터 가져오기"""
         data = await SuggesterCollection.get_by_id(suggestion_id)
         if data is None or not data:
             raise HTTPException(status_code=404, detail="Suggestion not found")
@@ -40,13 +40,13 @@ class SuggesterService:
 
     @staticmethod
     async def get_suggestions_by_user(user_id: ObjectId) -> list[SuggesterDocument]:
-        """특정 사용자의 모든 AI 추천 데이터 가져오기"""
+        """특정 사용자의 모든 ai 추천 데이터 가져오기"""
         data_list = await SuggesterCollection.get_by_user(user_id)
         return [SuggesterDocument(**data) for data in data_list]
 
     @staticmethod
     async def delete_suggestion(suggestion_id: str) -> bool:
-        """AI 추천 데이터 삭제"""
+        """ai 추천 데이터 삭제"""
         return await SuggesterCollection.delete(suggestion_id)
 
     @staticmethod
@@ -100,12 +100,12 @@ class SuggesterService:
 
     @staticmethod
     async def get_user_suggestion_count(user_id: ObjectId) -> int:
-        """특정 사용자의 AI 추천 데이터 개수 가져오기"""
+        """특정 사용자의 ai 추천 데이터 개수 가져오기"""
         count = await SuggesterCollection.count_by_user(user_id)
         return count
 
     @staticmethod
     async def get_recommend_suggestion_count() -> int:
-        """추천 AI 제안 개수 가져오기"""
+        """추천 ai 제안 개수 가져오기"""
         count = await SuggesterCollection.count_recommend_documents()
         return count

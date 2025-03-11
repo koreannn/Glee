@@ -8,8 +8,8 @@ import yaml
 from loguru import logger
 
 from app.core.settings import settings
-from AI.utils.deduplicate_sentence import deduplicate_sentences
-from AI.utils.get_headers_payloads import get_headers_payloads
+from ai.utils.deduplicate_sentence import deduplicate_sentences
+from ai.utils.get_headers_payloads import get_headers_payloads
 
 
 class Analyze:

@@ -12,7 +12,7 @@
 # from unittest.mock import Mock, patch
 #
 # # 상대 경로로 임포트 변경
-# from AI.glee_agent import (
+# from ai.glee_agent import (
 #     OrchestratorAgent,
 #     OcrAgent,
 #     SummarizerAgent,
@@ -64,12 +64,12 @@
 #         # 파일 경로를 튜플 리스트로 변환
 #         image_tuples = [(path, b"dummy_image_data") for path in test_image_files]
 #
-#         with patch("AI.glee_agent.CLOVA_OCR") as mock_ocr:
+#         with patch("ai.glee_agent.CLOVA_OCR") as mock_ocr:
 #             # 유효한 ocr 결과를 반환하도록 설정
 #             mock_ocr.return_value = {"images": [{"fields": [{"inferText": "OCR결과 테스트"}]}]}
 #
 #             # extract_text_from_ocr_result 함수도 모킹
-#             with patch("AI.glee_agent.extract_text_from_ocr_result") as mock_extract:
+#             with patch("ai.glee_agent.extract_text_from_ocr_result") as mock_extract:
 #                 mock_extract.return_value = "OCR결과 테스트"
 #
 #                 ocr_agent = OcrAgent()
@@ -80,7 +80,7 @@
 #
 # class TestSummarizerAgent:
 #     def test_run_success(self, sample_text):
-#         with patch("AI.glee_agent.Analyze.situation_summary") as mock_summary:
+#         with patch("ai.glee_agent.Analyze.situation_summary") as mock_summary:
 #             mock_summary.return_value = "상황 요약 테스트"
 #             summarizer = SummarizerAgent()
 #             result = summarizer.run(sample_text)
@@ -100,7 +100,7 @@
 #         말투: 친근한
 #         용도: 일상 대화
 #         """
-#         with patch("AI.glee_agent.Analyze.style_analysis") as mock_analysis:
+#         with patch("ai.glee_agent.Analyze.style_analysis") as mock_analysis:
 #             mock_analysis.return_value = example_result
 #             analyzer = StyleAnalysisAgent()
 #             result = analyzer.run(sample_text)
