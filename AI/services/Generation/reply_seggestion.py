@@ -24,7 +24,7 @@ class ReplySuggestion:
             "네트워크 연결 문제로 인해 답변을 생성하지 못했습니다. 다시 시도해 주시겠어요?",
             "서비스 연결이 원활하지 않습니다. 잠시 후에 다시 시도해 주세요.",
             "일시적인 서버 연결 문제가 발생했습니다. 곧 해결될 예정이니 잠시 후 다시 시도해 주세요.",
-            "현재 서비스가 혼잡하여 응답을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요."
+            "현재 서비스가 혼잡하여 응답을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         ]
 
     def _load_config(self, config_name: str) -> dict:
@@ -41,12 +41,7 @@ class ReplySuggestion:
 
         try:
             # 타임아웃 설정 추가 (15초)
-            response = await client.post(
-                self.BASE_URL, 
-                headers=headers, 
-                json=payload,
-                timeout=15.0
-            )
+            response = await client.post(self.BASE_URL, headers=headers, json=payload, timeout=15.0)
             if response.status_code == 200:
                 return await self._process_stream_response(response)
             else:
@@ -71,11 +66,11 @@ class ReplySuggestion:
     async def generate_suggestions(self, input_text: str, config_name: str, num_suggestions: int = 3) -> list[str]:
         """비동기로 여러 개의 답변을 생성"""
         try:
-            # 타임아웃 설정 추가 (30초)
+            # 타임아웃 설정 추가 (20초)
             async with httpx.AsyncClient(timeout=20.0) as client:
                 tasks = [self._fetch_reply(client, input_text, config_name) for _ in range(num_suggestions)]
                 suggestions = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # 예외 처리: 예외가 발생한 경우 대체 답변으로 교체
             processed_suggestions = []
             for suggestion in suggestions:
@@ -84,10 +79,10 @@ class ReplySuggestion:
                     processed_suggestions.append(self._get_fallback_reply(input_text))
                 else:
                     processed_suggestions.append(suggestion)
-            
+
             # 중복 제거
             unique_suggestions = list(dict.fromkeys(processed_suggestions))
-            
+
             # 답변이 num_suggestions 미만인 경우 대체 답변으로 채우기
             while len(unique_suggestions) < num_suggestions:
                 fallback = self._get_fallback_reply(input_text)
@@ -98,7 +93,7 @@ class ReplySuggestion:
                 logger.info(f"생성된 답변: {suggestion}")
 
             return unique_suggestions[:num_suggestions]  # 최대 num_suggestions 개 반환
-            
+
         except Exception as e:
             logger.error(f"답변 생성 중 예상치 못한 오류 발생: {e}")
             # 모든 API 호출이 실패한 경우 대체 답변 반환
@@ -133,7 +128,7 @@ class ReplySuggestion:
             if not reply_text.strip():
                 logger.warning("서버 응답이 비어 있음.")
                 return self._get_fallback_reply("빈 응답")
-                
+
             return deduplicate_sentences(reply_text.strip())
         except Exception as e:
             logger.error(f"스트림 응답 처리 중 예상치 못한 오류 발생: {e}")

@@ -29,7 +29,7 @@ class TitleSuggestion:
             "이런 방법을 시도해보세요",
             "전문가의 조언을 참고하세요",
             "이 팁이 문제 해결에 도움이 됩니다",
-            "이 정보가 유용할 것입니다"
+            "이 정보가 유용할 것입니다",
         ]
 
     async def fetch_title(self, client: AsyncClient, input_text: str, config_path: str) -> str:
@@ -38,12 +38,7 @@ class TitleSuggestion:
 
         try:
             # 타임아웃 설정 추가 (10초)
-            response = await client.post(
-                self.BASE_URL, 
-                headers=headers, 
-                json=payload, 
-                timeout=10.0
-            )
+            response = await client.post(self.BASE_URL, headers=headers, json=payload, timeout=10.0)
             response.raise_for_status()
             title_text = ""
 
@@ -63,7 +58,7 @@ class TitleSuggestion:
                 return self._get_fallback_title(input_text)
 
             return deduplicate_sentences(title_text)
-            
+
         except (ConnectTimeout, ReadTimeout) as e:
             logger.error(f"API 연결 시간 초과: {e}")
             return self._get_fallback_title(input_text)
@@ -77,6 +72,7 @@ class TitleSuggestion:
     def _get_fallback_title(self, input_text: str) -> str:
         """API 연결 실패 시 대체 제목 반환"""
         import random
+
         fallback_title = random.choice(self.fallback_titles)
         logger.info(f"대체 제목 사용: {fallback_title}")
         return fallback_title
@@ -91,7 +87,7 @@ class TitleSuggestion:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 tasks = [self.fetch_title(client, input_text, config_path) for _ in range(3)]
                 titles = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # 예외 처리: 예외가 발생한 경우 대체 제목으로 교체
             processed_titles = []
             for title in titles:
@@ -100,10 +96,10 @@ class TitleSuggestion:
                     processed_titles.append(self._get_fallback_title(input_text))
                 else:
                     processed_titles.append(title)
-            
+
             # 중복 제거
             unique_titles = list(dict.fromkeys(processed_titles))
-            
+
             # 제목이 3개 미만인 경우 대체 제목으로 채우기
             while len(unique_titles) < 3:
                 fallback = self._get_fallback_title(input_text)
@@ -114,7 +110,7 @@ class TitleSuggestion:
                 logger.info(f"생성된 제목: {title}")
 
             return unique_titles[:3]  # 최대 3개 반환
-            
+
         except Exception as e:
             logger.error(f"제목 생성 중 예상치 못한 오류 발생: {e}")
             # 모든 API 호출이 실패한 경우 대체 제목 3개 반환

@@ -53,3 +53,8 @@ class DeleteSuggestionResponse(BaseModel):
 
 class PutSuggestionResponse(BaseModel):
     suggestions: list[SuggestionResponse]
+
+
+class GetSuggestionCounts(BaseModel):
+    user_suggestion_count: int
+    recommended_suggestion_count: int

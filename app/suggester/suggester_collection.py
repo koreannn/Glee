@@ -121,3 +121,13 @@ class SuggesterCollection:
             }
         )
         return await cursor.to_list(length=100)
+
+    @classmethod
+    async def count_by_user(cls, user_id: ObjectId) -> int:
+        """특정 사용자의 제안 개수"""
+        return await cls._collection.count_documents({"user_id": user_id})
+
+    @classmethod
+    async def count_recommend_documents(cls) -> int:
+        """추천 제안 개수"""
+        return await cls._collection.count_documents({"recommend": True})

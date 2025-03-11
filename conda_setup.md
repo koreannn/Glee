@@ -98,4 +98,4 @@ conda activate $HOME/.conda/envs/dap-dap-back
 
 # 또는 다른 경로를 지정한 경우
 conda activate ~/my_conda_envs/dap-dap-back
-``` 
+```
