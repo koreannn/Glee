@@ -29,10 +29,10 @@
 #     """테스트용 이미지 파일 경로를 반환하는 fixture"""
 #     base_path = Path(__file__).parent.parent
 #     return [
-#         str(base_path / "OCR_Test1.png"),
-#         str(base_path / "OCR_Test2.png"),
-#         str(base_path / "OCR_Test3.png"),
-#         str(base_path / "OCR_Test4.png"),
+#         str(base_path / "ocr_test1.png"),
+#         str(base_path / "ocr_test2.png"),
+#         str(base_path / "ocr_test3.png"),
+#         str(base_path / "ocr_test4.png"),
 #     ]
 #
 #
@@ -65,7 +65,7 @@
 #         image_tuples = [(path, b"dummy_image_data") for path in test_image_files]
 #
 #         with patch("AI.glee_agent.CLOVA_OCR") as mock_ocr:
-#             # 유효한 OCR 결과를 반환하도록 설정
+#             # 유효한 ocr 결과를 반환하도록 설정
 #             mock_ocr.return_value = {"images": [{"fields": [{"inferText": "OCR결과 테스트"}]}]}
 #
 #             # extract_text_from_ocr_result 함수도 모킹

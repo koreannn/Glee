@@ -3,10 +3,10 @@
 # from typing import List
 #
 # from loguru import logger
-# from AI.services.OCR.clova_ocr import ClovaOcr
-# from AI.services.Analysis.analyze_situation import Analyze
-# from AI.services.Generation.reply_seggestion import ReplySuggestion
-# from AI.services.Generation.title_suggestion import TitleSuggestion
+# from AI.services.ocr.clova_ocr import ClovaOcr
+# from AI.services.analysis.analyze_situation import Analyze
+# from AI.services.generation.reply_seggestion import ReplySuggestion
+# from AI.services.generation.title_suggestion import TitleSuggestion
 #
 # """
 # python3 -m pytest AI/tests/ -v: 더 자세한 로그를 보고싶을떄 (verbose)
@@ -22,10 +22,10 @@
 #     """테스트용 이미지 파일 경로를 반환하는 fixture"""
 #     base_path = Path(__file__).parent.parent
 #     return [
-#         str(base_path / "OCR_Test1.png"),
-#         str(base_path / "OCR_Test2.png"),
-#         str(base_path / "OCR_Test3.png"),
-#         str(base_path / "OCR_Test4.png"),
+#         str(base_path / "ocr_test1.png"),
+#         str(base_path / "ocr_test2.png"),
+#         str(base_path / "ocr_test3.png"),
+#         str(base_path / "ocr_test4.png"),
 #     ]
 #
 #
@@ -35,8 +35,8 @@
 #     return {"situation": Analyze(), "reply": ReplySuggestion(), "title": TitleSuggestion()}
 #
 #
-# def test_ocr_service(test_image_files):  # OCR 테스트
-#     logger.info("\n1. OCR 텍스트 인식 테스트")
+# def test_ocr_service(test_image_files):  # ocr 테스트
+#     logger.info("\n1. ocr 텍스트 인식 테스트")
 #     result = ClovaOcr(test_image_files)
 #     assert isinstance(result, str)
 #     assert len(result) > 0
@@ -44,9 +44,9 @@
 #
 # def test_analyze_situation(test_image_files, services):  # 상황 분석 테스트
 #     logger.info("\n2. 상황 분석 테스트")
-#     # OCR 텍스트 추출
+#     # ocr 텍스트 추출
 #     image2text = ClovaOcr(test_image_files)
-#     assert image2text, "OCR 텍스트가 추출되지 않았습니다"
+#     assert image2text, "ocr 텍스트가 추출되지 않았습니다"
 #
 #     # 상황 요약
 #     situation = services["situation"].situation_summary(image2text)
@@ -56,9 +56,9 @@
 #
 # def test_analyze_situation_with_style(test_image_files, services):  # 말투, 용도 분석 테스트
 #     logger.info("\n3. 말투, 용도 분석 테스트")
-#     # OCR 텍스트 추출
+#     # ocr 텍스트 추출
 #     image2text = ClovaOcr(test_image_files)
-#     assert image2text, "OCR 텍스트가 추출되지 않았습니다"
+#     assert image2text, "ocr 텍스트가 추출되지 않았습니다"
 #
 #     # 상황 요약
 #     situation = services["situation"].situation_summary(image2text)
@@ -125,7 +125,7 @@
 #     ],
 # )
 # def test_ocr_service_invalid_input(invalid_input):
-#     """OCR 서비스 에러 케이스 테스트"""
+#     """ocr 서비스 에러 케이스 테스트"""
 #     with pytest.raises(Exception):
 #         ClovaOcr(invalid_input)
 #

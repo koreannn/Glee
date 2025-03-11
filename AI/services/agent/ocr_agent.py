@@ -5,23 +5,23 @@ from typing import List, Tuple
 from loguru import logger
 
 
-from AI.services.Agent.image_pre_processor import ImagePreprocessor
-from AI.services.Agent.ocr_post_processing_agent import OcrPostProcessingAgent
+from AI.services.agent.image_pre_processor import ImagePreprocessor
+from AI.services.agent.ocr_post_processing_agent import OcrPostProcessingAgent
 from AI.utils.image_dto import ImageDto
 from AI.utils.services import ocr_service
 
 
 class OcrAgent:
-    """OCR 처리를 담당하는 에이전트"""
+    """ocr 처리를 담당하는 에이전트"""
 
     def __init__(self, max_retries=2):
         self.max_retries = max_retries
         self.post_processor = OcrPostProcessingAgent()
         self.preprocessor = ImagePreprocessor()
 
-    # 헬퍼 함수: OCR 결과 JSON에서 텍스트 추출
+    # 헬퍼 함수: ocr 결과 JSON에서 텍스트 추출
     async def extract_text_from_ocr_result(self, ocr_result) -> str:
-        """OCR 결과에서 텍스트를 추출"""
+        """ocr 결과에서 텍스트를 추출"""
         if isinstance(ocr_result, str):
             return ocr_result
 
@@ -36,7 +36,7 @@ class OcrAgent:
                 )
                 return extracted_text.strip()
         except Exception as e:
-            logger.error(f"OCR 결과 파싱 중 오류 발생: {e}")
+            logger.error(f"ocr 결과 파싱 중 오류 발생: {e}")
 
         return ""
 
@@ -52,7 +52,7 @@ class OcrAgent:
         retry = 0
         while retry <= self.max_retries:
             try:
-                # 비동기 OCR 요청 (ClovaOcr.run() 사용)
+                # 비동기 ocr 요청 (ClovaOcr.run() 사용)
                 ocr_result = await ocr_service.run(processed_data)
 
                 if isinstance(ocr_result, str) and ocr_result.startswith("Error"):
@@ -64,7 +64,7 @@ class OcrAgent:
 
                 if len(extracted_text.strip()) < 5 and retry < self.max_retries:
                     retry += 1
-                    logger.warning(f"OCR 결과가 너무 짧음, 재시도 {retry}/{self.max_retries}")
+                    logger.warning(f"ocr 결과가 너무 짧음, 재시도 {retry}/{self.max_retries}")
                     await asyncio.sleep(1)
                     continue
                 else:
@@ -72,7 +72,7 @@ class OcrAgent:
                     break
 
             except Exception as e:
-                logger.error(f"OCR 처리 중 오류 발생: {str(e)}")
+                logger.error(f"ocr 처리 중 오류 발생: {str(e)}")
                 if retry >= self.max_retries:
                     aggregated_text.append("")
                     break

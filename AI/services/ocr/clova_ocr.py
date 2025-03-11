@@ -18,12 +18,12 @@ class ClovaOcr:
         self.SECRET_KEY = os.getenv("CLOVA_OCR_SECRET_KEY", settings.CLOVA_OCR_SECRET_KEY)
 
         if not self.URL or not self.SECRET_KEY:
-            logger.error("OCR API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
+            logger.error("ocr API URL 또는 SECRET_KEY가 설정되지 않았습니다.")
 
         self.client = httpx.AsyncClient()
 
     async def ocr_request(self, image_data: bytes, filename: str) -> str:
-        """비동기 OCR 요청을 보냄"""
+        """비동기 ocr 요청을 보냄"""
         file_ext = filename.split(".")[-1].lower()
 
         request_json = {
@@ -37,7 +37,7 @@ class ClovaOcr:
         files = [("file", image_data)]
 
         headers = {
-            "X-OCR-SECRET": self.SECRET_KEY,
+            "X-ocr-SECRET": self.SECRET_KEY,
         }
 
         try:
@@ -64,13 +64,13 @@ class ClovaOcr:
 
     @staticmethod
     def extract_text_from_result(result: dict, filename: str) -> str:
-        """OCR 결과에서 텍스트를 추출하는 함수"""
+        """ocr 결과에서 텍스트를 추출하는 함수"""
         if "images" not in result or not result["images"]:
-            logger.error(f"[{filename}] OCR 결과에 'images' 키가 없습니다: {result}")
+            logger.error(f"[{filename}] ocr 결과에 'images' 키가 없습니다: {result}")
             return ""
 
         if "fields" not in result["images"][0]:
-            logger.error(f"[{filename}] OCR 결과에 'fields' 키가 없습니다: {result}")
+            logger.error(f"[{filename}] ocr 결과에 'fields' 키가 없습니다: {result}")
             return ""
 
         extracted_text = " ".join(field["inferText"] for field in result["images"][0]["fields"])
@@ -79,7 +79,7 @@ class ClovaOcr:
 
     async def run(self, images: list[ImageDto]) -> str:
         """
-        여러 이미지 파일 경로 리스트를 받아, 각 파일에 대해 OCR 요청을 개별적으로 보내고,
+        여러 이미지 파일 경로 리스트를 받아, 각 파일에 대해 ocr 요청을 개별적으로 보내고,
         그 결과를 합쳐서 반환합니다.
         """
         if not images:

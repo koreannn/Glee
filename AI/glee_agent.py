@@ -1,10 +1,10 @@
 import os
 import sys
 from dotenv import load_dotenv
-from AI.services.Agent.ocr_agent import OcrAgent
-from AI.services.Agent.orchestrator_agent import OrchestratorAgent
-from AI.services.Agent.style_analysis_agent import StyleAnalysisAgent
-from AI.services.Agent.summarizer_agent import SummarizerAgent
+from AI.services.agent.ocr_agent import OcrAgent
+from AI.services.agent.orchestrator_agent import OrchestratorAgent
+from AI.services.agent.style_analysis_agent import StyleAnalysisAgent
+from AI.services.agent.summarizer_agent import SummarizerAgent
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -42,7 +42,7 @@ class GleeAgent:
         if not image_files:
             raise ValueError("No image files provided.")
 
-        # OCR 에이전트를 사용하여 텍스트 추출
+        # ocr 에이전트를 사용하여 텍스트 추출
         image_text = await cls.ocr_agent.run(image_files)
 
         # 상황 요약 에이전트를 사용하여 상황 분석
@@ -55,7 +55,7 @@ class GleeAgent:
         if not image_files:
             return "", "", ""
 
-        # OCR 에이전트를 사용하여 텍스트 추출
+        # ocr 에이전트를 사용하여 텍스트 추출
         image_text = await cls.ocr_agent.run(image_files)
 
         # 스타일 분석 에이전트를 사용하여 스타일 분석

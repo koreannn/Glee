@@ -1,11 +1,11 @@
 from typing import Dict, Union, List
 
-from AI.services.Agent.feedback_agent import FeedbackAgent
-from AI.services.Agent.ocr_agent import OcrAgent
-from AI.services.Agent.reply_suggestion_agent import ReplySuggestionAgent
-from AI.services.Agent.style_analysis_agent import StyleAnalysisAgent
-from AI.services.Agent.summarizer_agent import SummarizerAgent
-from AI.services.Agent.title_suggestion_agent import TitleSuggestionAgent
+from AI.services.agent.feedback_agent import FeedbackAgent
+from AI.services.agent.ocr_agent import OcrAgent
+from AI.services.agent.reply_suggestion_agent import ReplySuggestionAgent
+from AI.services.agent.style_analysis_agent import StyleAnalysisAgent
+from AI.services.agent.summarizer_agent import SummarizerAgent
+from AI.services.agent.title_suggestion_agent import TitleSuggestionAgent
 
 
 class OrchestratorAgent:

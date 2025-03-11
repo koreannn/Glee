@@ -1,8 +1,8 @@
-from AI.services.Agent.ocr_cache import OcrCache
-from AI.services.Analysis.analyze_situation import Analyze
-from AI.services.Generation.reply_seggestion import ReplySuggestion
-from AI.services.Generation.title_suggestion import TitleSuggestion
-from AI.services.OCR.clova_ocr import ClovaOcr
+from AI.services.agent.ocr_cache import OcrCache
+from AI.services.analysis.analyze_situation import Analyze
+from AI.services.generation.reply_seggestion import ReplySuggestion
+from AI.services.generation.title_suggestion import TitleSuggestion
+from AI.services.ocr.clova_ocr import ClovaOcr
 
 
 ocr_service = ClovaOcr()

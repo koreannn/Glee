@@ -443,6 +443,18 @@ files = [
 ]
 
 [[package]]
+name = "itsdangerous"
+version = "2.2.0"
+description = "Safely pass data to untrusted environments and back."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "itsdangerous-2.2.0-py3-none-any.whl", hash = "sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef"},
+    {file = "itsdangerous-2.2.0.tar.gz", hash = "sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173"},
+]
+
+[[package]]
 name = "loguru"
 version = "0.7.3"
 description = "Python logging made (stupidly) simple"
@@ -1256,4 +1268,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.14"
-content-hash = "e631146513652f49ca030805851b165f40e8444fb22f3125a1a8321231a0143f"
+content-hash = "b330135853a67ae9e19c3e800892d6420a786339d8a4a7515b2c2c0e84838f4f"
