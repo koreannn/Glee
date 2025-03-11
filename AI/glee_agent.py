@@ -95,10 +95,12 @@ class GleeAgent:
     #  length : 짧게, 길게, 적당함 (short, long, moderate) 예정
     @classmethod
     async def generate_reply_suggestions_detail_length(
-        cls, situation: str, accent: str, purpose: str, detailed_description: str, length: str, add_description: str
+        cls, suggestion: str, length: str, add_description: str
     ) -> tuple[list[str], list[str]]:
+        ...
+        # 기존 코드
+        # result = await cls.orchestrator_agent.run_manual_mode_extended(
+        #     situation, accent, purpose, detailed_description, length, add_description
+        # )
+        # return result["replies"], result["titles"]
 
-        result = await cls.orchestrator_agent.run_manual_mode_extended(
-            situation, accent, purpose, detailed_description, length, add_description
-        )
-        return result["replies"], result["titles"]
