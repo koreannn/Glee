@@ -1,7 +1,6 @@
 import os
 import sys
 from dotenv import load_dotenv
-from loguru import logger
 from AI.services.Agent.ocr_agent import OcrAgent
 from AI.services.Agent.orchestrator_agent import OrchestratorAgent
 from AI.services.Agent.style_analysis_agent import StyleAnalysisAgent

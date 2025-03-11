@@ -7,7 +7,7 @@ from AI.services.Agent.style_analysis_agent import StyleAnalysisAgent
 from AI.services.Agent.summarizer_agent import SummarizerAgent
 from AI.services.Agent.title_suggestion_agent import TitleSuggestionAgent
 
-from AI.services.videosearch_service import VideoSearchService
+# from AI.services.videosearch_service import VideoSearchService
 
 
 class OrchestratorAgent:
@@ -19,7 +19,7 @@ class OrchestratorAgent:
         self.reply_agent_new = ReplySuggestionAgent(variant="new")
         self.style_agent = StyleAnalysisAgent()
         self.feedback_agent = FeedbackAgent()
-        self.video_service = VideoSearchService()
+        # self.video_service = VideoSearchService()
 
     async def run_reply_mode(self, input_text: str) -> Dict[str, Union[str, List[str]]]:
         # 상황 요약 생성
@@ -41,71 +41,71 @@ class OrchestratorAgent:
             "replies": replies,
         }
 
-    async def run_reply_with_video_info(self, input_text: str) -> Dict[str, Union[str, List[str]]]:
-        """
-        입력 텍스트를 기반으로 관련 자막 정보를 검색하고, 이를 답변 생성에 활용합니다.
-
-        Args:
-            input_text: 사용자 입력 텍스트
-
-        Returns:
-            생성된 답변 정보를 담은 딕셔너리
-        """
-        # 상황 요약 생성
-        summary = await self.summarizer_agent.run(input_text)
-        summary = self.feedback_agent.check_and_improve(summary, input_text, self.summarizer_agent)
-
-        # 관련 자막 정보 검색
-        video_info = await self.video_service.get_most_relevant_content(summary)
-
-        # 자막 정보가 있는 경우, 이를 답변 생성에 활용
-        if video_info["source"] != "error" and video_info["source"] != "no_results":
-            # 자막 정보 추출
-            video_title = video_info["video_title"]
-            video_url = video_info["video_url"]
-            transcript = video_info["transcript"]
-            similarity = video_info.get("similarity", 0.0)
-
-            # 자막 정보를 포함한 입력 생성
-            enhanced_input = f"""
-상황: {summary}
-
-참고 자료:
-제목: {video_title}
-출처: {video_url}
-내용: {transcript[:500]}...  # 너무 길지 않게 앞부분만 사용
-"""
-
-            # 제목 생성
-            titles = await self.title_agent.run(summary)
-
-            # 자막 정보를 포함한 답변 생성
-            replies = await self.reply_agent_new.run(enhanced_input)
-            replies = [
-                self.feedback_agent.check_and_improve(reply, enhanced_input, self.reply_agent_new) for reply in replies
-            ]
-
-            return {
-                "situation": summary,
-                "accent": "기본 말투",
-                "purpose": "일반 답변",
-                "titles": titles,
-                "replies": replies,
-                "reference": {"video_title": video_title, "video_url": video_url, "similarity": similarity},
-            }
-        else:
-            # 자막 정보가 없는 경우, 기본 답변 생성
-            titles = await self.title_agent.run(summary)
-            replies = await self.reply_agent_old.run(summary)
-            replies = [self.feedback_agent.check_and_improve(reply, summary, self.reply_agent_old) for reply in replies]
-
-            return {
-                "situation": summary,
-                "accent": "기본 말투",
-                "purpose": "일반 답변",
-                "titles": titles,
-                "replies": replies,
-            }
+#     async def run_reply_with_video_info(self, input_text: str) -> Dict[str, Union[str, List[str]]]:
+#         """
+#         입력 텍스트를 기반으로 관련 자막 정보를 검색하고, 이를 답변 생성에 활용합니다.
+#
+#         Args:
+#             input_text: 사용자 입력 텍스트
+#
+#         Returns:
+#             생성된 답변 정보를 담은 딕셔너리
+#         """
+#         # 상황 요약 생성
+#         summary = await self.summarizer_agent.run(input_text)
+#         summary = self.feedback_agent.check_and_improve(summary, input_text, self.summarizer_agent)
+#
+#         # 관련 자막 정보 검색
+#         video_info = await self.video_service.get_most_relevant_content(summary)
+#
+#         # 자막 정보가 있는 경우, 이를 답변 생성에 활용
+#         if video_info["source"] != "error" and video_info["source"] != "no_results":
+#             # 자막 정보 추출
+#             video_title = video_info["video_title"]
+#             video_url = video_info["video_url"]
+#             transcript = video_info["transcript"]
+#             similarity = video_info.get("similarity", 0.0)
+#
+#             # 자막 정보를 포함한 입력 생성
+#             enhanced_input = f"""
+# 상황: {summary}
+#
+# 참고 자료:
+# 제목: {video_title}
+# 출처: {video_url}
+# 내용: {transcript[:500]}...  # 너무 길지 않게 앞부분만 사용
+# """
+#
+#             # 제목 생성
+#             titles = await self.title_agent.run(summary)
+#
+#             # 자막 정보를 포함한 답변 생성
+#             replies = await self.reply_agent_new.run(enhanced_input)
+#             replies = [
+#                 self.feedback_agent.check_and_improve(reply, enhanced_input, self.reply_agent_new) for reply in replies
+#             ]
+#
+#             return {
+#                 "situation": summary,
+#                 "accent": "기본 말투",
+#                 "purpose": "일반 답변",
+#                 "titles": titles,
+#                 "replies": replies,
+#                 "reference": {"video_title": video_title, "video_url": video_url, "similarity": similarity},
+#             }
+#         else:
+#             # 자막 정보가 없는 경우, 기본 답변 생성
+#             titles = await self.title_agent.run(summary)
+#             replies = await self.reply_agent_old.run(summary)
+#             replies = [self.feedback_agent.check_and_improve(reply, summary, self.reply_agent_old) for reply in replies]
+#
+#             return {
+#                 "situation": summary,
+#                 "accent": "기본 말투",
+#                 "purpose": "일반 답변",
+#                 "titles": titles,
+#                 "replies": replies,
+#             }
 
     async def run_style_mode(self, input_text: str) -> Dict[str, Union[str, List[str]]]:
         # 스타일 분석 (상황, 말투, 용도 추출)
