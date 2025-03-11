@@ -31,3 +31,4 @@ class ContentLength(Enum):
     SHORTEN = "short"  # 더 짧게
     MODERATE = "moderate"  # 적당함
     EXTEND = "long"  # 더 길게
+    DEFAULT = ""
