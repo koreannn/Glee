@@ -213,41 +213,7 @@ class OrchestratorAgent:
         titles = await self.title_agent.run(situation)
 
         # 답변 제안 생성 (말투, 용도, 추가 설명 정보 활용)
-        replies = await self.reply_agent_new.run(detailed_input)
-        replies = [
-            self.feedback_agent.check_and_improve(reply, detailed_input, self.reply_agent_new) for reply in replies
-        ]
-
-        return {
-            "situation": situation,
-            "accent": accent,
-            "purpose": purpose,
-            "details": details,
-            "titles": titles,
-            "replies": replies,
-        }
-
-    ## 6번 함수 
-    async def run_manual_mode_extended(
-         self, 
-         suggestion: str,  
-         length: str, 
-         add_description: str
-     ) -> Dict[str, Union[str, List[str]]]:
- 
-         suggestion_input = f"수정하고 싶은 답변: {suggestion}\n"
-
-         if length:
-             suggestion_input += f"원하는 답변 길이: {length}\n"
-         if add_description:
-             suggestion_input += f"추가 요청: {add_description}\n"
-             
-         suggestion_input += "위 내용을 바탕으로 답장을 수정해서 작성해줘."
- 
-         # 제목 제안 생성
-         titles = await self.title_agent.run(suggestion_input)
- 
-         # 답변 제안 생성
+        replies =장 제안 생성
          replies = await self.reply_agent_new.run(suggestion_input)
          replies = [
              self.feedback_agent.check_and_improve(reply, suggestion_input, self.reply_agent_new) for reply in replies
