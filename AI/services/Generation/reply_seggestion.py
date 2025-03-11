@@ -136,7 +136,7 @@ class ReplySuggestion:
 
     async def generate_basic_reply(self, situation_text: str) -> list[str]:
         """상황 -> 답변 생성 함수 (비동기)"""
-        return await self.generate_suggestions(situation_text, "config_Reply_Suggestions.yaml")
+        return await self.generate_suggestions(situation_text, "config_reply_suggestions.yaml")
 
     async def generate_detailed_reply(
         self, situation_text: str, accent: str = None, purpose: str = None, detailed_description: str = "없음"
@@ -148,4 +148,4 @@ class ReplySuggestion:
         if detailed_description != "없음":
             input_text += f"\n사용자가 추가적으로 제공하는 디테일한 내용: {detailed_description}"
 
-        return await self.generate_suggestions(input_text, "config_Reply_Suggestions_accent_purpose.yaml")
+        return await self.generate_suggestions(input_text, "config_reply_suggestions_accent_purpose.yaml")

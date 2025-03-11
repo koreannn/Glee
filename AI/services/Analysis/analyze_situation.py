@@ -82,7 +82,7 @@ class Analyze:
         return "기본 말투", "일반적인 용도"
 
     async def situation_summary(self, conversation: str) -> str:  # 상황 요약
-        result = await self.make_api_request("config_Situation_Summary.yaml", conversation)
+        result = await self.make_api_request("config_situation_summary.yaml", conversation)
         if result:
             result = deduplicate_sentences(result)
             logger.info(f"상황 요약: {result}")
@@ -90,7 +90,7 @@ class Analyze:
         return ""
 
     async def style_analysis(self, conversation: str) -> tuple[str, str]:  # 말투, 용도 분석
-        result = await self.make_api_request("config_Style_Analysis.yaml", conversation, random_seed=True)
+        result = await self.make_api_request("config_style_analysis.yaml", conversation, random_seed=True)
         if result:
             return self.parse_style_analysis(result)
         return "기본 말투", "일반적인 용도"

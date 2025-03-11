@@ -80,7 +80,7 @@ class TitleSuggestion:
     async def generate_title_suggestions(self, input_text: str) -> list[str]:
         """비동기로 여러 제목을 생성"""
         BASE_DIR = self.BASE_DIR
-        config_path = str(BASE_DIR / "config" / "config_Title_Suggestion.yaml")
+        config_path = str(BASE_DIR / "config" / "config_title_suggestion.yaml")
 
         try:
             # 타임아웃 설정 추가 (30초)
