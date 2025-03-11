@@ -91,6 +91,4 @@ class ClovaOcr:
         tasks = [self.ocr_request(image.data, image.name) for image in images]
         results = await asyncio.gather(*tasks)
 
-        logger.info(f"총 {len(images)}개의 파일을 처리 완료.")
-        logger.info(f"{results}")
         return "\n".join(results).strip()

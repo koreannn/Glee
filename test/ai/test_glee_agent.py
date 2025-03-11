@@ -1,161 +1,246 @@
-# import os
-# import sys
-#
-# # 프로젝트 루트 디렉토리를 Python 경로에 추가
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-#
-# import pytest
-# from pathlib import Path
-# from typing import List
-#
-#
-# from unittest.mock import Mock, patch
-#
-# # 상대 경로로 임포트 변경
-# from ai.glee_agent import (
-#     OrchestratorAgent,
-#     OcrAgent,
-#     SummarizerAgent,
-#     TitleSuggestionAgent,
-#     ReplySuggestionAgent,
-#     StyleAnalysisAgent,
-#     parse_style_analysis,
-#     parse_suggestion,
-# )
-#
-#
-# @pytest.fixture
-# def test_image_files() -> List[str]:
-#     """테스트용 이미지 파일 경로를 반환하는 fixture"""
-#     base_path = Path(__file__).parent.parent
-#     return [
-#         str(base_path / "ocr_test1.png"),
-#         str(base_path / "ocr_test2.png"),
-#         str(base_path / "ocr_test3.png"),
-#         str(base_path / "ocr_test4.png"),
-#     ]
-#
-#
-# @pytest.fixture
-# def sample_text():
-#     return "레몬 한 개에는 레몬 한 개 만큼의 비타민C가 포함되어있습니다."
-#
-#
-# def test_parse_style_analysis():  # 원하는 형태로 파싱하는지를 테스트
-#     test_input = """
-#     상황: 친구와 대화
-#     말투: 친근한
-#     용도: 일상대화
-#     """
-#     situation, accent, purpose = parse_style_analysis(test_input)
-#     assert situation == "친구와 대화"
-#     assert accent == "친근한"
-#     assert purpose == "일상대화"
-#
-#
-# def test_parse_suggestion():
-#     test_input = "제목: 테스트 제목"
-#     result, _ = parse_suggestion(test_input)
-#     assert result == "테스트 제목"
-#
-#
-# class TestOcrAgent:  # Test: 1. 문자열을 반환하는지 2. 빈 문자열을 반환하지 않는지
-#     def test_run_success(self, test_image_files):
-#         # 파일 경로를 튜플 리스트로 변환
-#         image_tuples = [(path, b"dummy_image_data") for path in test_image_files]
-#
-#         with patch("ai.glee_agent.CLOVA_OCR") as mock_ocr:
-#             # 유효한 ocr 결과를 반환하도록 설정
-#             mock_ocr.return_value = {"images": [{"fields": [{"inferText": "OCR결과 테스트"}]}]}
-#
-#             # extract_text_from_ocr_result 함수도 모킹
-#             with patch("ai.glee_agent.extract_text_from_ocr_result") as mock_extract:
-#                 mock_extract.return_value = "OCR결과 테스트"
-#
-#                 ocr_agent = OcrAgent()
-#                 result = ocr_agent.run(image_tuples)
-#                 assert isinstance(result, str)
-#                 assert len(result.strip()) > 0
-#
-#
-# class TestSummarizerAgent:
-#     def test_run_success(self, sample_text):
-#         with patch("ai.glee_agent.Analyze.situation_summary") as mock_summary:
-#             mock_summary.return_value = "상황 요약 테스트"
-#             summarizer = SummarizerAgent()
-#             result = summarizer.run(sample_text)
-#             assert isinstance(result, str)
-#             assert len(result.strip()) > 0
-#
-#
-# class TestStyleAnalyzer:
-#     """
-#     1. 리턴값 전부 온전히 반환하는지: 1) (상황, 말투, 용도 전체 분석결과) 2) 상황 3) 말투 4) 용도
-#     2. 리턴값 타입이 모두 문자열인지
-#     """
-#
-#     def test_run_success(self, sample_text):
-#         example_result = """
-#         상황: 테스트 상황
-#         말투: 친근한
-#         용도: 일상 대화
-#         """
-#         with patch("ai.glee_agent.Analyze.style_analysis") as mock_analysis:
-#             mock_analysis.return_value = example_result
-#             analyzer = StyleAnalysisAgent()
-#             result = analyzer.run(sample_text)
-#             assert isinstance(result, tuple)
-#             assert len(result) == 4
-#             assert isinstance(result[0], str)  # 상황~말투~용도 의 텍스트
-#             assert isinstance(result[1], str)  # 상황 텍스트
-#             assert isinstance(result[2], str)  # 말투 텍스트
-#             assert isinstance(result[3], str)  # 용도 텍스트
-#
-#
-# class TestOrchestratorAgent:
-#     def test_run_reply_mode_success(self, sample_text):
-#         orchestrator = OrchestratorAgent()
-#         with patch.multiple(orchestrator, summarizer_agent=Mock(), title_agent=Mock(), reply_agent_old=Mock()):
-#             orchestrator.summarizer_agent.run.return_value = "상황 요약"
-#             orchestrator.title_agent.run.return_value = ["제목 제안1", "제목 제안2"]
-#             orchestrator.reply_agent_old.run.return_value = ["답변 제안1", "답변 제안2"]
-#
-#             result = orchestrator.run_reply_mode(sample_text)
-#             assert isinstance(result, dict)
-#             assert "situation" in result
-#             assert "accent" in result
-#             assert "purpose" in result
-#             assert "titles" in result
-#             assert "replies" in result
-#
-#     def test_run_style_mode_success(self, sample_text):
-#         orchestrator = OrchestratorAgent()
-#         with patch.multiple(orchestrator, style_agent=Mock(), title_agent=Mock(), reply_agent_new=Mock()):
-#             # 4개의 값을 반환하도록 수정 (전체 결과, 상황, 말투, 용도)
-#             orchestrator.style_agent.run.return_value = ("전체 분석 결과", "상황 분석", "말투 분석", "용도 분석")
-#             orchestrator.title_agent.run.return_value = ["제목 제안1", "제목 제안2"]
-#             orchestrator.reply_agent_new.run.return_value = ["답변 제안1", "답변 제안2"]
-#
-#             result = orchestrator.run_style_mode(sample_text)
-#             assert isinstance(result, dict)
-#             assert "situation" in result
-#             assert "titles" in result
-#             assert "replies" in result
-#
-#     def test_run_manual_mode_success(self, sample_text):
-#         orchestrator = OrchestratorAgent()
-#         with patch.multiple(orchestrator, title_agent=Mock(), reply_agent_new=Mock()):
-#             orchestrator.title_agent.run.return_value = ["제목 제안1", "제목 제안2"]
-#             orchestrator.reply_agent_new.run.return_value = ["답변 제안1", "답변 제안2"]
-#
-#             # 필요한 매개변수 추가
-#             situation = "테스트 상황"
-#             accent = "친근한"
-#             purpose = "일상 대화"
-#             details = "추가 세부 정보"
-#
-#             result = orchestrator.run_manual_mode(situation, accent, purpose, details)
-#             assert isinstance(result, dict)
-#             assert "situation" in result
-#             assert "titles" in result
-#             assert "replies" in result
+"""
+GleeAgent 클래스의 메서드들을 실제 API와 객체를 사용하여 테스트하는 파일입니다.
+"""
+
+import pytest
+import os
+from pathlib import Path
+import sys
+import asyncio
+import time
+from typing import List, Tuple
+from loguru import logger
+# 프로젝트 루트 디렉토리를 Python 경로에 추가
+current_dir = Path(__file__).resolve().parent
+root_dir = current_dir.parent.parent
+sys.path.insert(0, str(root_dir))
+
+from ai.glee_agent import GleeAgent
+
+# """
+# python3 -m pytest ai/tests/ -v: 더 자세한 로그를 보고싶을떄 (verbose)
+# python3 -m pytest ai/tests/ -v -s: 로깅 정보를 함께 보고싶을 때
+# 또는
+# pytest tests/test_ai_services.py -v
+# pytest tests/test_ai_services.py -v -s
+# """
+
+
+@pytest.fixture
+def test_image_path(): # 테스트 이미지의 경로를 반환하는 픽스쳐
+    return os.path.join(root_dir, "AI", "OCR_Test1.png")
+
+
+@pytest.fixture # test1. input: 테스트 이미지의 경로 -> output: [(테스트 이미지의 이름, 데이터)]
+def test_image_files(test_image_path): 
+    if not os.path.exists(test_image_path):
+        pytest.skip(f"테스트 이미지 파일이 존재하지 않습니다: {test_image_path}")
+    
+    with open(test_image_path, "rb") as f:
+        image_data = f.read()
+    
+    image_name = os.path.basename(test_image_path)
+    logger.info("test1. 테스트 이미지 경로 -> 테스트 이미지 파일 테스트")
+    return [(image_name, image_data)]
+
+
+@pytest.mark.asyncio # 이미지 -> 상황 분석 텍스트
+async def test_analyze_situation(test_image_files):
+    logger.info(f"test2. 이미지 파일 경로 -> 상황 분석 텍스트 테스트")
+    start_time = time.time()
+    result = await GleeAgent.analyze_situation(test_image_files)
+    end_time = time.time()
+    
+    logger.info(f"이미지 파일: {test_image_files[0][0]}")
+    logger.info(f"분석 결과: {result}")
+    logger.info(f"처리 시간: {end_time - start_time:.2f}초")
+    
+    # 결과 검증
+    assert isinstance(result, str)
+    assert len(result.strip()) > 0
+
+
+@pytest.mark.asyncio # 이미지 -> 상황, 말투, 용도 분석 텍스트
+async def test_analyze_situation_accent_purpose(test_image_files):
+    logger.info(f"test3. 이미지 파일 경로 -> 상황, 말투, 용도 분석 텍스트 테스트")
+    start_time = time.time()
+    situation, accent, purpose = await GleeAgent.analyze_situation_accent_purpose(test_image_files)
+    end_time = time.time()
+    
+    logger.info(f"\n===== 테스트: 실제 이미지로 상황, 말투, 용도 분석 =====")
+    logger.info(f"이미지 파일: {test_image_files[0][0]}")
+    logger.info(f"situation: {situation}")
+    logger.info(f"accent: {accent}")
+    logger.info(f"purpose: {purpose}")
+    logger.info(f"처리 시간: {end_time - start_time:.2f}초")
+    
+    # 결과 검증
+    assert isinstance(situation, str)
+    assert isinstance(accent, str)
+    assert isinstance(purpose, str)
+    assert len(situation.strip()) > 0
+    assert len(accent.strip()) > 0
+    assert len(purpose.strip()) > 0
+
+
+@pytest.mark.asyncio # 상황을 입력받았을 때 -> 제목,답변 생성 테스트
+async def test_generate_suggestions_situation():
+    logger.info(f"test4. 상황을 입력받았을 때 -> 제목, 답변 생성 테스트")
+    
+    # 모의 상황
+    test_situation = "면접에서 자기소개를 어떻게 하면 좋을지 알려주세요."
+    
+    start_time = time.time()
+    titles, replies = await GleeAgent.generate_suggestions_situation(test_situation)
+    end_time = time.time()
+    
+    logger.info(f"상황: {test_situation}")
+    logger.info(f"title:\n")
+    for i, title in enumerate(titles, 1):
+        print(f"  {i}. {title}")
+        
+    logger.info(f"reply:\n")
+    for i, reply in enumerate(replies, 1):
+        print(f"  {i}. {reply[:100]}..." if len(reply) > 100 else f"  {i}. {reply}")
+        
+    logger.info(f"처리 시간: {end_time - start_time:.2f}초")
+    
+    # 결과 검증
+    assert isinstance(titles, list)
+    assert isinstance(replies, list)
+    assert len(titles) > 0
+    assert len(replies) > 0
+    for title in titles:
+        assert isinstance(title, str)
+        assert len(title.strip()) > 0
+    for reply in replies:
+        assert isinstance(reply, str)
+        assert len(reply.strip()) > 0
+
+
+@pytest.mark.asyncio # 상황, 말투, 용도 -> 답변 생성
+async def test_generate_reply_suggestions_accent_purpose():
+    logger.info(f"test5. 상황, 말투, 용도에 맞는 답변 제안 생성 테스트")
+    
+    # 모의 상황 정의
+    test_situation = "면접에서 자기소개를 어떻게 하면 좋을지 알려주세요."
+    test_accent = "친절하고 전문적인 말투"
+    test_purpose = "카카오톡"
+    
+    start_time = time.time()
+    titles, replies = await GleeAgent.generate_reply_suggestions_accent_purpose(
+        test_situation, test_accent, test_purpose
+    )
+    end_time = time.time()
+    
+    logger.info(f"test_situation: {test_situation}")
+    logger.info(f"test_accent: {test_accent}")
+    logger.info(f"test_purpose: {test_purpose}")
+    logger.info(f"title:\n")
+    for i, title in enumerate(titles, 1):
+        print(f"  {i}. {title}")
+    logger.info(f"reply:\n")
+    for i, reply in enumerate(replies, 1):
+        print(f"  {i}. {reply[:100]}..." if len(reply) > 100 else f"  {i}. {reply}")
+    logger.info(f"처리 시간: {end_time - start_time:.2f}초")
+    
+    # 결과 검증
+    assert isinstance(titles, list)
+    assert isinstance(replies, list)
+    assert len(titles) > 0
+    assert len(replies) > 0
+    for title in titles:
+        assert isinstance(title, str)
+        assert len(title.strip()) > 0
+    for reply in replies:
+        assert isinstance(reply, str)
+        assert len(reply.strip()) > 0
+
+
+@pytest.mark.asyncio # 상황, 말투, 용도, 상세 설명 -> 답변 생성
+async def test_generate_reply_suggestions_detail():
+    logger.info(f"test6. 상황, 말투, 용도, 상세 설명에 맞는 답변 제안 생성 테스트")
+    # 테스트 데이터 정의
+    test_situation = "면접에서 자기소개를 어떻게 하면 좋을지 알려주세요."
+    test_accent = "친절하고 전문적인 말투"
+    test_purpose = "면접 준비 조언"
+    test_details = "IT 회사에 지원하는 신입 개발자입니다."
+    
+    start_time = time.time()
+    titles, replies = await GleeAgent.generate_reply_suggestions_detail(
+        test_situation, test_accent, test_purpose, test_details
+    )
+    end_time = time.time()
+    
+    logger.info(f"test_situation: {test_situation}")
+    logger.info(f"test_accent: {test_accent}")
+    logger.info(f"test_purpose: {test_purpose}")
+    logger.info(f"test_details: {test_details}")
+    
+    logger.info(f"title:\n")
+    for i, title in enumerate(titles, 1):
+        print(f"  {i}. {title}")
+        
+    logger.info(f"reply:\n")
+    for i, reply in enumerate(replies, 1):
+        print(f"  {i}. {reply[:100]}..." if len(reply) > 100 else f"  {i}. {reply}")
+        
+    logger.info(f"처리 시간: {end_time - start_time:.2f}초")
+    
+    # 결과 검증
+    assert isinstance(titles, list)
+    assert isinstance(replies, list)
+    assert len(titles) > 0
+    assert len(replies) > 0
+    for title in titles:
+        assert isinstance(title, str)
+        assert len(title.strip()) > 0
+    for reply in replies:
+        assert isinstance(reply, str)
+        assert len(reply.strip()) > 0
+
+
+@pytest.mark.asyncio
+async def test_generate_reply_suggestions_detail_length():
+    logger.info(f"test7. 실제 길이 조정 및 추가 설명을 포함한 답변 제안 생성 테스트")
+    # 테스트 데이터 정의
+    test_suggestion = "면접에서 자기소개를 어떻게 하면 좋을지 알려주세요."
+    test_length = "짧게"
+    test_add_description = "IT 회사에 지원하는 신입 개발자입니다."
+    
+    # 시작 시간 기록
+    start_time = time.time()
+    
+    # 실제 메서드 호출
+    titles, replies = await GleeAgent.generate_reply_suggestions_detail_length(
+        test_suggestion, test_length, test_add_description
+    )
+    
+    # 종료 시간 기록
+    end_time = time.time()
+    
+    logger.info(f"제안: {test_suggestion}")
+    logger.info(f"길이: {test_length}")
+    logger.info(f"추가 설명: {test_add_description}")
+    
+    logger.info(f"생성된 제목:")
+    for i, title in enumerate(titles, 1):
+        print(f"  {i}. {title}")
+        
+    logger.info(f"생성된 답변:")
+    for i, reply in enumerate(replies, 1):
+        print(f"  {i}. {reply[:100]}..." if len(reply) > 100 else f"  {i}. {reply}")
+        
+    logger.info(f"처리 시간: {end_time - start_time:.2f}초")
+    
+    # 결과 검증
+    assert isinstance(titles, list)
+    assert isinstance(replies, list)
+    assert len(titles) > 0
+    assert len(replies) > 0
+    for title in titles:
+        assert isinstance(title, str)
+        assert len(title.strip()) > 0
+    for reply in replies:
+        assert isinstance(reply, str)
+        assert len(reply.strip()) > 0
