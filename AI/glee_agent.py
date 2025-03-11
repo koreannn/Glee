@@ -96,8 +96,7 @@ class GleeAgent:
     async def generate_reply_suggestions_detail_length(
         cls, suggestion: str, length: str, add_description: str
     ) -> tuple[list[str], list[str]]:
-        
-        result = await cls.orchestrator_agent.run_manual_mode_extended(suggestion, length, add_description)
-        
-        return result["replies"], result["titles"]
 
+        result = await cls.orchestrator_agent.run_manual_mode_extended(suggestion, length, add_description)
+
+        return result["replies"], result["titles"]

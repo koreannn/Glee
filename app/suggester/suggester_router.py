@@ -8,6 +8,7 @@ from app.suggester.suggester_request import (
     GenerateSuggestionRequest,
     SuggestionRequest,
     UpdateSuggestionTagsRequest,
+    RegenerateSuggestionRequest,
 )
 from app.suggester.suggester_response import (
     AnalyzeImagesConversationResponse,
@@ -153,6 +154,32 @@ async def generate_suggestion(
     result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]
 
     logger.info(f"Generated suggestions - User: {user.nickname if user else 'Guest'}, Suggestions: {result}")
+
+    if user:
+        _suggestions = [Suggestion(title=suggestion.title, content=suggestion.content) for suggestion in result]
+        await HistoryService.create_history(user.id, _suggestions)
+
+    return GenerateSuggestionsResponse(suggestions=result)
+
+
+@router.post(
+    "/regenerate",
+    summary="기존 생성된 글과 추가 정보를 받아 AI 글을 다시 생성하여 반환",
+    response_model=GenerateSuggestionsResponse,
+)
+async def regenerate_suggestion(
+    request: RegenerateSuggestionRequest,
+    user: UserDocument | None = Depends(JwtHandler.get_optional_current_user),  # ✅ JWT 인증된 사용자
+) -> GenerateSuggestionsResponse:
+    logger.info(f"Regenerating suggestions - User: {user.nickname if user else 'Guest'}, Request: {request}")
+
+    suggestions, titles = await SuggesterService.regenerate_suggestions(
+        exist_suggestion=request.exist_suggestion, length=request.length.value, detail=request.detail
+    )
+
+    result = [GenerateSuggestion(title=title, content=suggestion) for title, suggestion in zip(titles, suggestions)]
+
+    logger.info(f"Regenerated suggestions - User: {user.nickname if user else 'Guest'}, Suggestions: {result}")
 
     if user:
         _suggestions = [Suggestion(title=suggestion.title, content=suggestion.content) for suggestion in result]

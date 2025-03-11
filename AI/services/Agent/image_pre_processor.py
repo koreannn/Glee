@@ -28,7 +28,7 @@ class ImagePreprocessor:
 
         except MemoryError as e:
             logger.critical("[ImagePreprocessor] 메모리 부족 오류 발생!")
-            raise ValueError("이미지가 너무 커서 메모리 부족 오류가 발생했습니다.")
+            raise ValueError(f"이미지가 너무 커서 메모리 부족 오류가 발생했습니다. 오류 : {e}")
 
         except Exception as e:
             logger.exception(f"[ImagePreprocessor] 이미지 전처리 중 예상치 못한 오류 발생: {e}")

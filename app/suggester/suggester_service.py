@@ -1,7 +1,3 @@
-# from fastapi import UploadFile
-#
-#
-#
 from datetime import datetime
 
 from bson import ObjectId
@@ -71,6 +67,14 @@ class SuggesterService:
             suggestions, title = await GleeAgent.generate_suggestions_situation(situation)
         else:
             raise HTTPException(status_code=400, detail="Invalid Generate Suggestion Request")
+        return suggestions, title
+
+    @staticmethod
+    async def regenerate_suggestions(exist_suggestion: str, length: str, detail: str) -> tuple[list[str], list[str]]:
+        suggestions, title = await GleeAgent.generate_reply_suggestions_detail_length(
+            suggestion=exist_suggestion, length=length, add_description=detail
+        )
+
         return suggestions, title
 
     @staticmethod

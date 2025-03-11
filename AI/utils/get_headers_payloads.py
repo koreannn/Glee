@@ -1,13 +1,8 @@
-import json
 import os
-import sys
 import yaml
 import random  # random 모듈 추가
 from typing import Optional, Union, Dict, Any
 
-# 프로젝트 루트 디렉토리를 파이썬 경로에 추가
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(project_root)
 
 from dotenv import load_dotenv
 from app.core.settings import settings

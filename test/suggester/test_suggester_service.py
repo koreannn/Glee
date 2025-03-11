@@ -1,7 +1,7 @@
 import pytest
 from bson import ObjectId
 
-from app.core.enums import SuggestionTagType
+from app.core.enums import SuggestionTagType, ContentLength
 from app.suggester.suggester_document import SuggesterDocument
 from app.suggester.suggester_service import SuggesterService
 from datetime import datetime
@@ -139,3 +139,16 @@ async def test_get_suggestion_counts(exists_suggestion: SuggesterDocument) -> No
 
     assert my_suggestion_count == 2
     assert recommend_suggestion_count == 1
+
+
+@pytest.mark.asyncio
+async def test_regenerate_suggestions() -> None:
+
+    exist_suggestion = "내가 저번에 한 말 때문에 상처 받았다면 정말 미안해. 내가 너무 생각없이 말한 것 같아. 다신 이런일 없도록 조심할게"
+    length = ContentLength.EXTEND.value
+    detail = "앞으로 잘 지내자는 내용을 추가 해줘"
+    suggestions, title = await SuggesterService.regenerate_suggestions(exist_suggestion, length, detail)
+
+    assert len(suggestions) > 0
+    assert len(title) > 0
+    assert len(suggestions[0]) > len(exist_suggestion)

@@ -5,7 +5,7 @@ from unittest.mock import patch, AsyncMock
 from bson import ObjectId
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.core.enums import PurposeType, SuggestionTagType, ToneType
+from app.core.enums import PurposeType, SuggestionTagType, ToneType, ContentLength
 from app.suggester.suggester_document import SuggesterDocument
 from app.user.user_document import UserDocument
 
@@ -304,3 +304,25 @@ async def test_get_suggestion_counts(exists_suggestion: SuggesterDocument, auth_
     assert "user_suggestion_count" in data and "recommended_suggestion_count" in data
     assert int(data["user_suggestion_count"]) > 0
     assert int(data["recommended_suggestion_count"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_regenerate_suggestion(auth_header: dict[str, str]) -> None:
+
+    data = {
+        "exist_suggestion": "내가 저번에 한 말 때문에 상처 받았다면 정말 미안해. 내가 너무 생각없이 말한 것 같아. 다신 이런일 없도록 조심할게",
+        "length": ContentLength.EXTEND.value,
+        "detail": "앞으로 잘 지내자는 내용을 추가 해줘",
+    }
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            "/suggester/regenerate",
+            headers=auth_header,
+            json=data,
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "suggestions" in data
+    assert len(data["suggestions"]) > 0

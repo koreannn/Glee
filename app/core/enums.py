@@ -25,3 +25,9 @@ class SuggestionTagType(Enum):
     REFERENCE = "참고"
     FAVORITES = "즐겨찾기"
     IDEA = "아이디어"
+
+
+class ContentLength(Enum):
+    SHORTEN = "short"  # 더 짧게
+    MODERATE = "moderate"  # 적당함
+    EXTEND = "long"  # 더 길게
