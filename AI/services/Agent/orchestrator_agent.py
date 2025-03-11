@@ -226,3 +226,45 @@ class OrchestratorAgent:
             "titles": titles,
             "replies": replies,
         }
+
+    ## 6번 함수 
+    async def run_manual_mode_extended(
+         self, 
+         situation: str, 
+         accent: str, 
+         purpose: str, 
+         details: str, 
+         length: str, 
+         add_description: str
+     ) -> Dict[str, Union[str, List[str]]]:
+ 
+         detailed_input = (
+             f"상황: {situation}\n"
+             f"말투: {accent}\n"
+             f"용도: {purpose}\n"
+             f"추가 설명: {details}\n"
+         )
+         if length:
+             detailed_input += f"답변 길이: {length}\n"
+         if add_description:
+             detailed_input += f"추가 요청: {add_description}\n"
+         detailed_input += "위 내용을 바탕으로 자연스러운 답장을 작성해줘."
+ 
+         # 제목 제안 생성
+         titles = await self.title_agent.run(detailed_input)
+ 
+         # 답변 제안 생성
+         replies = await self.reply_agent_new.run(detailed_input)
+         replies = [
+             self.feedback_agent.check_and_improve(reply, detailed_input, self.reply_agent_new) for reply in replies
+         ]
+ 
+         return {
+             "situation": situation,
+             "accent": accent,
+             "purpose": purpose,
+             "details": details,
+             "titles": titles,
+             "replies": replies,
+             "prompt": detailed_input,
+         }
