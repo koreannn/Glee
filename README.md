@@ -29,8 +29,13 @@ https://www.glee-message-maker.store/
 # Install
 ```
 poetry install
+```
+# Run
+```
 poetry run uvicorn app.main:app
 ```
+
+
 # Test 
 ```
 poetry run pytest
