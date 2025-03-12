@@ -25,11 +25,9 @@ class TitleSuggestion:
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         # 대체 제목 목록 추가
         self.fallback_titles = [
-            "이 내용이 도움이 될 거예요",
-            "이런 방법을 시도해보세요",
-            "전문가의 조언을 참고하세요",
-            "이 팁이 문제 해결에 도움이 됩니다",
-            "이 정보가 유용할 것입니다",
+            "이렇게 써보는건 어떨까요!",
+            "Glee의 제안!",
+            "Glee의 글 제안",
         ]
 
     async def fetch_title(self, client: AsyncClient, input_text: str, config_path: str) -> str:
