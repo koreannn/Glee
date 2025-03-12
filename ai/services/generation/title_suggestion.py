@@ -76,6 +76,27 @@ class TitleSuggestion:
         fallback_title = random.choice(self.fallback_titles)
         logger.info(f"대체 제목 사용: {fallback_title}")
         return fallback_title
+        
+    def _remove_title_prefix(self, title: str) -> str:
+        """제목에서 '제목:' 접두사를 다양한 형태로 제거합니다."""
+        # 문자열 앞뒤 공백 제거
+        title = title.strip()
+        
+        # 정규식을 사용하지 않고 다양한 형태의 "제목:" 패턴 처리
+        lower_title = title.lower()
+        if lower_title.startswith("제목"):
+            # "제목" 다음에 오는 문자가 ':' 또는 공백+':'인 경우 처리
+            title_part = title[2:].strip()  # "제목" 부분 제거
+            
+            # ':' 또는 공백+':' 패턴 확인 및 제거
+            if title_part.startswith(":"):
+                return title_part[1:].strip()
+            elif title_part.startswith(" :"):
+                return title_part[2:].strip()
+            elif title_part.startswith(" : "):
+                return title_part[3:].strip()
+        
+        return title
 
     async def generate_title_suggestions(self, input_text: str) -> list[str]:
         """비동기로 여러 제목을 생성"""
@@ -95,7 +116,10 @@ class TitleSuggestion:
                     logger.error(f"제목 생성 중 오류 발생: {title}")
                     processed_titles.append(self._get_fallback_title(input_text))
                 else:
+                    # '제목: ' 접두사 제거
                     processed_titles.append(title)
+                    # processed_title = self._remove_title_prefix(title)
+                    # processed_titles.append(processed_title)
 
             # 중복 제거
             unique_titles = list(dict.fromkeys(processed_titles))

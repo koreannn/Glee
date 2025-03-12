@@ -21,18 +21,25 @@ class GleeAgent:
 
     orchestrator_agent = OrchestratorAgent()
 
-    @classmethod
+    @classmethod # 실제적으로 사용되지 않는 메서드같습니다
     async def parse_suggestion(cls, suggestion: str) -> Tuple[str, str]:
         """제안 텍스트에서 제목과 내용을 추출합니다."""
         title = ""
         content = suggestion
 
-        if "제목:" in suggestion:
-            parts = suggestion.split("제목:", 1)
+        # 콜론(:)이 있는지 확인하고 이후의 내용만 추출
+        if ":" in suggestion:
+            # 첫 번째 콜론을 기준으로 분할
+            parts = suggestion.split(":", 1)
             if len(parts) > 1:
-                content = parts[0].strip()
-                title = parts[1].strip()
-
+                # 콜론 이전 부분이 "제목"을 포함하는지 확인
+                if "제목" in parts[0].lower():
+                    content = ""  # 제목만 있는 경우 내용은 빈 문자열로 설정
+                    title = parts[1].strip()
+                else:
+                    # 제목이 아닌 다른 콜론이 있는 경우 원래 내용 유지
+                    content = suggestion
+        
         return title, content
 
     # -------------------------------------------------------------------
