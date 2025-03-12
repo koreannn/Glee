@@ -21,7 +21,7 @@ class GleeAgent:
 
     orchestrator_agent = OrchestratorAgent()
 
-    @classmethod # 실제적으로 사용되지 않는 메서드같습니다
+    @classmethod  # 실제적으로 사용되지 않는 메서드같습니다
     async def parse_suggestion(cls, suggestion: str) -> Tuple[str, str]:
         """제안 텍스트에서 제목과 내용을 추출합니다."""
         title = ""
@@ -39,7 +39,7 @@ class GleeAgent:
                 else:
                     # 제목이 아닌 다른 콜론이 있는 경우 원래 내용 유지
                     content = suggestion
-        
+
         return title, content
 
     # -------------------------------------------------------------------

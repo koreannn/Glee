@@ -14,10 +14,13 @@ class StyleAnalysisAgent:
             line = line.strip()
             if line.startswith("상황"):
                 situation = line.replace("상황:", "").strip()
+                situation = situation.replace("상황 :", "").strip()
             elif line.startswith("말투"):
                 accent = line.replace("말투:", "").strip()
+                accent = accent.replace("말투 :", "").strip()
             elif line.startswith("용도"):
                 purpose = line.replace("용도:", "").strip()
+                purpose = purpose.replace("용도 :", "").strip()
 
         return situation, accent, purpose
 

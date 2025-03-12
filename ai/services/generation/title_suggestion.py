@@ -25,11 +25,9 @@ class TitleSuggestion:
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         # 대체 제목 목록 추가
         self.fallback_titles = [
-            "이 내용이 도움이 될 거예요",
-            "이런 방법을 시도해보세요",
-            "전문가의 조언을 참고하세요",
-            "이 팁이 문제 해결에 도움이 됩니다",
-            "이 정보가 유용할 것입니다",
+            "이렇게 써보는건 어떨까요!",
+            "Glee의 제안!",
+            "Glee의 글 제안",
         ]
 
     async def fetch_title(self, client: AsyncClient, input_text: str, config_path: str) -> str:
@@ -76,18 +74,18 @@ class TitleSuggestion:
         fallback_title = random.choice(self.fallback_titles)
         logger.info(f"대체 제목 사용: {fallback_title}")
         return fallback_title
-        
+
     def _remove_title_prefix(self, title: str) -> str:
         """제목에서 '제목:' 접두사를 다양한 형태로 제거합니다."""
         # 문자열 앞뒤 공백 제거
         title = title.strip()
-        
+
         # 정규식을 사용하지 않고 다양한 형태의 "제목:" 패턴 처리
         lower_title = title.lower()
         if lower_title.startswith("제목"):
             # "제목" 다음에 오는 문자가 ':' 또는 공백+':'인 경우 처리
             title_part = title[2:].strip()  # "제목" 부분 제거
-            
+
             # ':' 또는 공백+':' 패턴 확인 및 제거
             if title_part.startswith(":"):
                 return title_part[1:].strip()
@@ -95,7 +93,7 @@ class TitleSuggestion:
                 return title_part[2:].strip()
             elif title_part.startswith(" : "):
                 return title_part[3:].strip()
-        
+
         return title
 
     async def generate_title_suggestions(self, input_text: str) -> list[str]:
